@@ -12,12 +12,15 @@ SQLAlchemy = "^2.0.29"
 psycopg2-binary = "^2.9.9"
 pandas = "^2.2.1"
 loguru = "^0.7.2"
+loguru-mypy = "*"
 pgvector = "^0.2.5"
 duckdb = "^0.10.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
 pytest-integration = "^0.2.3"
+pytest-cov = "^4.0.0"
+mypy= "^1.9.0"
 
 [build-system]
 requires = ["poetry-core"]
