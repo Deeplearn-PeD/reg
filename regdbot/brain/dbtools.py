@@ -1,9 +1,11 @@
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Union
 import dotenv
 import os
 import loguru
 import duckdb
-from sqlalchemy import create_engine
+import sqlalchemy
+from sqlalchemy import create_engine, sql
+
 
 dotenv.load_dotenv()
 logger = loguru.logger
@@ -14,7 +16,7 @@ class Database:
         self.url = dburl
 
     @property
-    def connection(self) -> object:
+    def connection(self) -> Union[duckdb.DuckDBPyConnection, sqlalchemy.engine.Connection]:
         if 'duckdb' in self.url:
             return get_duckdb_connection(self.url)
         elif 'postgresql' in self.url:
@@ -29,8 +31,14 @@ class Database:
         :param table_name:
         :return:
         """
-        query = f"DESCRIBE SELECT * FROM {table_name};"
-        result = self.connection.execute(query)
+        if 'duckdb' in self.url:
+            query = f"DESCRIBE SELECT * FROM {table_name};"
+        elif 'postgresql' in self.url:
+            query = f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table_name}';"
+        elif 'csv' in self.url:
+            result = get_csv_description(self.url)
+            return result
+        result = self.connection.execute(sql.text(query))
 
         return result.fetchall()
 

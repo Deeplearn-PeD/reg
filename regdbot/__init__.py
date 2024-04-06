@@ -15,14 +15,14 @@ class Persona:
         self.languages = languages
         self.active_language = languages[0]
         self.model = None
-        self.voice = talk.Speaker(voice=talk.piper_languages[self.active_language], language=self.active_language)
+        self.voice = talk.Speaker(language=self.active_language)
         self.say = self.voice.say
         self.context_prompt = sql_retrieval_augmented + '' if context_prompts is None else '\n'.join(context_prompts)
 
     def set_language(self, language: str):
         if language in self.languages:
             self.active_language = language
-            self.voice = talk.Speaker(voice=talk.piper_languages[self.active_language], language=self.active_language)
+            self.voice = talk.Speaker(language=self.active_language)
             self.say = self.voice.say
         else:
             raise ValueError(f"Language {language} not supported by this persona.")

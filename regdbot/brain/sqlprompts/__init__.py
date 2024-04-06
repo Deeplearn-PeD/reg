@@ -4,13 +4,13 @@ class PromptTemplate:
     Class to generate Prompt templates for interactions with the OpenAI API
     for SQL query generation.   
     """
-    def __init__(self, dialect: str = 'postgresql', db: str='duckdb:///:memory:') -> object:
+    def __init__(self, dburl:str, dialect: str = 'postgresql',) -> object:
         """
         Constructor for the PromptTemplate class
         :param dialect: SQL dialect to use in the query
         :param db: Database connection URL
         """
-        self.db = db
+        self.db = dbt.Database(dburl)
         self.dialog = dialect
         self.system_preamble = f"""
         Given an input question about data in a relational database, 
@@ -24,7 +24,7 @@ class PromptTemplate:
 
 
     def add_table_description(self, table_name: str, description: str) -> None:
-        for table in dbt.get_table_description(dbt.get_duckdb_connection(self.db), table_name):
+        for table in self.db.get_table_description(table_name):
             description += f"{table[0]}: {table[1]}\n"
             self.system_preamble += f"{table_name}: \n{description}"
 
