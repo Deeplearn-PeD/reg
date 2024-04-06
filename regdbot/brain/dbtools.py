@@ -1,31 +1,49 @@
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Union
 import dotenv
 import os
 import loguru
 import duckdb
-from sqlalchemy import create_engine
+import sqlalchemy
+from sqlalchemy import create_engine, sql
+
 
 dotenv.load_dotenv()
 logger = loguru.logger
 
 
-def get_db_url(connvar: str = 'PGURL') -> str:
-    """
-    Returns the database connection url
-    as defined in the environment variable `conn` 
-    :param connvar: Environment variable containing the database connection URL
-    :return: URL to database connection
-    """
-    return os.getenv(connvar)
+class Database:
+    def __init__(self, dburl) -> None:
+        self.url = dburl
+
+    @property
+    def connection(self) -> Union[duckdb.DuckDBPyConnection, sqlalchemy.engine.Connection]:
+        if 'duckdb' in self.url:
+            return get_duckdb_connection(self.url)
+        elif 'postgresql' in self.url:
+            engine = create_engine(self.url)
+            return engine.connect()
+        else:
+            logger.error(f"Database URL {self.url} not supported.")
+
+    def get_table_description(self, table_name: str) -> List[Dict[str, Any]]:
+        """
+        Returns the description of the table using duckdb
+        :param table_name:
+        :return:
+        """
+        if 'duckdb' in self.url:
+            query = f"DESCRIBE SELECT * FROM {table_name};"
+        elif 'postgresql' in self.url:
+            query = f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table_name}';"
+        elif 'csv' in self.url:
+            result = get_csv_description(self.url)
+            return result
+        result = self.connection.execute(sql.text(query))
+
+        return result.fetchall()
 
 
-def get_db(connvar='PGURL') -> object:
-    """
-    Returns the database connection object
-    :return:
-    """
-    engine = create_engine(get_db_url(connvar=connvar))
-    return engine
+
 
 def get_duckdb_connection(url: str) -> object:
     """
@@ -39,21 +57,7 @@ def get_duckdb_connection(url: str) -> object:
         return duckdb.connect(url)
 
 
-def get_table_description(engine, table_name: str) -> List[Dict[str, Any]]:
-    """
-    Returns the description of the table using duckdb
-    :param engine:
-    :param table_name:
-    :return:
-    """
-    query = f"DESCRIBE SELECT * FROM {table_name};"
-    if isinstance(engine, duckdb.duckdb.DuckDBPyConnection):
-        result = engine.execute(query)
-    else:
-        with engine.connect() as conn:
-            result = conn.execute(query)
 
-    return result.fetchall()
 
 def get_csv_description(file_path: str) -> List[Tuple[str, Any]]:
     """
