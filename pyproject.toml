@@ -5,6 +5,12 @@ description = "AI bot specialized in Database exploration"
 authors = ["Flávio Codeço Coelho <fccoelho@gmail.com>"]
 license = "GPL-v3"
 readme = "README.md"
+packages = [
+    { include = "regdbot"},
+]
+
+[tool.poetry.scripts]
+reggie = "regdbot.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
