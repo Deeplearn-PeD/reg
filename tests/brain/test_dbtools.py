@@ -1,10 +1,6 @@
 import pytest
-from sqlalchemy import create_engine
 import os
 import duckdb
-from brain import dbtools
-
-
 
 
 @pytest.fixture

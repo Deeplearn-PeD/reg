@@ -1,7 +1,3 @@
-import openai
-from brain import dbtools as dbt
-
-
 class PromptTemplate:
     """
     Class to generate Prompt templates for interactions with the OpenAI API

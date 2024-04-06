@@ -1,6 +1,5 @@
-import pytest
-from unittest.mock import Mock, patch
-from voice import talk
+from unittest.mock import patch
+from regdbot.voice import talk
 
 def test_speaker_initialization_sets_correct_attributes():
     speaker = talk.Speaker(voice='faber-medium', language='pt_BR')
