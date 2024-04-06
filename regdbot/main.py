@@ -10,8 +10,8 @@ dotenv.load_dotenv()
 
 
 class Reggie:
-    def __init__(self, language: str='pt_BR'):
-        self.bot = RegDBot()
+    def __init__(self, model='gemma', language: str='pt_BR'):
+        self.bot = RegDBot(model=model)
         self.bot.set_language(language)
 
 
@@ -64,5 +64,5 @@ class Reggie:
 
 
 def main():
-    reggie = Reggie()
+    reggie = Reggie(model='gemma')
     fire.Fire(reggie)
