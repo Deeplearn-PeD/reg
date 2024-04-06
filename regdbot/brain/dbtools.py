@@ -13,6 +13,10 @@ logger = loguru.logger
 
 class Database:
     def __init__(self, dburl) -> None:
+        """
+        Configure database connection for prompt generation
+        :param dburl: any standard database url or csv:mycsv.csv for csv files
+        """
         self.url = dburl
 
     @property
@@ -22,6 +26,10 @@ class Database:
         elif 'postgresql' in self.url:
             engine = create_engine(self.url)
             return engine.connect()
+        elif 'csv':
+            mdb = duckdb.connect()
+            mdb.execute(f'select * from {self.url.split(":")[1]}')
+            return mdb
         else:
             logger.error(f"Database URL {self.url} not supported.")
 
