@@ -33,6 +33,8 @@ class Reggie:
             prompt.add_table_description(table, description)
 
         self.bot.set_prompt(prompt)
+        print("Approximate # of tokens in context: ", len(self.bot.prompt_template.system_preamble.split()))
+        # print(self.bot.prompt_template.system_preamble)
         question = input("O que você deseja saber?")
         print(self.ask(question))
 
