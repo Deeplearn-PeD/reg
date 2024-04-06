@@ -1,5 +1,5 @@
 import os
-
+from typing import List, Tuple, Dict, Union, Any
 import fire
 from regdbot.brain import RegDBot
 from regdbot.brain.sqlprompts import PromptTemplate
@@ -21,6 +21,21 @@ class Reggie:
     def ask(self, question):
         return self.bot.ask(question)
 
+    def auto(self, db:str, tables: Tuple[str]):
+        """
+        Execute query automatically just through the CLI
+        :param db: database url
+        :param table: table name or tuple of names
+        """
+        prompt = PromptTemplate(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'))
+        for table in tables:
+            description = input(f"Entre uma descrição para tabela {table} ou <enter>:")
+            prompt.add_table_description(table, description)
+
+        self.bot.set_prompt(prompt)
+        question = input("O que você deseja saber?")
+        print(self.ask(question))
+
     def introduction(self):
         for line in talk.introductions[self.bot.active_language]:
             self.say(line)
@@ -34,12 +49,14 @@ class Reggie:
         self.say('OK!')
 
         prompt = PromptTemplate(os.getenv('PGURL') if dbtype == 'postgresql' else os.getenv('DUCKURL'))
+
         for q in talk.table_questions[self.bot.active_language]:
             self.say(q)
         table_names = input('Nome(s):')
         table_names = table_names.split(',')
         for table_name in table_names:
             prompt.add_table_description(table_name, '')
+        self.bot.set_prompt(prompt)
 
 
 
