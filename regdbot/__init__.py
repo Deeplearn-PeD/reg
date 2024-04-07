@@ -10,11 +10,11 @@ from typing import List, Dict, Any, Union
 
 
 class Persona:
-    def __init__(self, name: str='Reggie D. Bot', model: str='gpt-4',  languages=['pt_BR','en'], context_prompts: List[str] = None):
+    def __init__(self, name: str='Reggie D. Bot', model: str='gpt-4-0125-preview',  languages=['pt_BR','en'], context_prompts: List[str] = None):
         self.name = name
         self.languages = languages
         self.active_language = languages[0]
-        self.model = None
+        self.model = model
         self.voice = talk.Speaker(language=self.active_language)
         self.say = self.voice.say
         self.context_prompt = sql_retrieval_augmented + '' if context_prompts is None else '\n'.join(context_prompts)
