@@ -27,13 +27,14 @@ class Reggie:
         :param db: database url
         :param table: table name or tuple of names
         """
-        prompt = PromptTemplate(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'))
+        prompt = PromptTemplate(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'), language=self.bot.active_language)
         for table in tables:
             description = input(f"Entre uma descrição para tabela {table} ou <enter>:")
             prompt.add_table_description(table, description)
 
         self.bot.set_prompt(prompt)
-        print("Approximate # of tokens in context: ", len(self.bot.prompt_template.system_preamble.split()))
+        print("Approximate # of tokens in context: ", len(self.bot.prompt_template.system_preamble[self.bot.active_language
+                                                          ][:2048].split()))
         # print(self.bot.prompt_template.system_preamble)
         question = input("O que você deseja saber?")
         print(self.ask(question))
@@ -50,7 +51,7 @@ class Reggie:
         self.say(talk.db_questions[self.bot.active_language][1])
         self.say('OK!')
 
-        prompt = PromptTemplate(os.getenv('PGURL') if dbtype == 'postgresql' else os.getenv('DUCKURL'))
+        prompt = PromptTemplate(os.getenv('PGURL') if dbtype == 'postgresql' else os.getenv('DUCKURL'), language=self.bot.active_language)
 
         for q in talk.table_questions[self.bot.active_language]:
             self.say(q)
