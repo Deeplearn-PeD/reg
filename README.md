@@ -1,5 +1,7 @@
-# reg
-Reg D. Bot an AI specialized in Database exploration using RAG and other techniques.
+# Reggie D. Bot
+Reggie D. Bot is an AI specialized in Database exploration using RAG and other techniques.
+
+![Reggie D. Bot](/reggie.jpeg)
 
 ## Setup
 1. Clone the repository
