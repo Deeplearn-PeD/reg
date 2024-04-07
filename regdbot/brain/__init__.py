@@ -6,6 +6,7 @@ how it should interact with the user, and how it should respond to the user's re
 from regdbot import Persona
 from openai import OpenAI
 from ollama import Client
+import ollama
 from regdbot.brain.sqlprompts import PromptTemplate
 import dotenv
 import os
@@ -44,24 +45,20 @@ class LLLModel:
         return response.choices[0].message.content
 
     def get_gemma_response(self, question: str, context: str) -> str:
-        response = self.llm.generate(
+        response = ollama.generate(
             model=self.model,
-            system=context,
+            system=context[:2048],
             prompt=question,
-            # messages=[
-            #     {'role': 'system', 'content': context},
-            #     {'role': 'user', 'content': question}
-            # ],
-            stream=True
         )
 
-        return '/n'.join([resp['response'] for resp in response ])
+        return response['response']
+        # return '/n'.join([resp['response'] for resp in response ])
 
 
 
 class RegDBot(Persona):
-    def __init__(self, name: str = 'Reggie D. Bot', languages=['pt_BR', 'en'], model: str='gpt-4-0125-preview', context_prompts: list = None):
-        super().__init__(name=name, languages=languages,model=model, context_prompts=context_prompts)
+    def __init__(self, name: str = 'Reggie D. Bot', languages=['pt_BR', 'en'], model: str='gpt-4-0125-preview'):
+        super().__init__(name=name, languages=languages,model=model)
         self.llm = LLLModel(model=model)
         self.prompt_template = None
 
@@ -74,7 +71,7 @@ class RegDBot(Persona):
         return response
 
     def get_response(self, question):
-        response =  self.llm.get_response(question, self.prompt_template.system_preamble)
+        response =  self.llm.get_response(question=question, context=self.prompt_template.get_prompt())
         return response
 
     def get_prompt(self):
@@ -82,19 +79,3 @@ class RegDBot(Persona):
 
 
 
-if __name__ == '__main__':
-    bot = RegDBot()
-    bot.say("Hello, I'm Reggie D. Bot, your database assistant.")
-    bot.say("I can help you with SQL queries, data analysis, and data visualization.")
-    bot.say("What can I do for you today?")
-
-    bot.set_template(PromptTemplate())
-
-    while True:
-        user_input = input("You: ")
-        if user_input == 'exit':
-            break
-        bot.ask(user_input)
-        response = bot.get_response()
-        bot.say(response)
-        print(response)
