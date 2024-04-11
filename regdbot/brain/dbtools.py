@@ -96,14 +96,18 @@ class Database:
         # get current table description
         table_description = self.get_table_description(table_name)
         # Prompt gemma model through ollama to generate SQL code with semantic naming for the view
+        view_name = view_name if view_name else f"{table_name}_semanticview"
         response = ollama.generate(
             model="gemma",
             system=f"You will be asked to create SQL code in {self.dialect} dialect, to create a view with semantic "
-                   f"names for the columns of a table.",
-            prompt=f"Generate SQL code with semantic names for the columns of table {table_name}\n",
+                   f"names for all the columns of a table. Do not use uppercase letters or spaces in the column names."
+                   f"if you need to use spaces, use underscores instead."
+                    f"When you cannot propose a semantic name, maintain the original name\n",
+            prompt=f"Generate SQL code with semantic names for the columns of table {table_name}\n"
+                   f"which include the following columns:\n{table_description}",
         )
         # run the response through the duckdb connection to create the view
-        self.connection.execute(sql.text(response['response']))
+        self.connection.execute(sql.text(response['response'].split("```sql")[1].strip("```")))
         # parse the response to get the column descriptions
         column_descriptions = {}
         for line in response.text.split("\n"):
