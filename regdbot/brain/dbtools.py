@@ -20,6 +20,8 @@ class Database:
         """
         self.url = dburl
         self._tables = []
+        self._views = []
+        self.dialect = 'duckdb' if 'duckdb' in self.url else 'postgresql' if 'postgresql' in self.url else 'csv'
 
     @property
     def tables(self) -> List[str]:
@@ -38,7 +40,20 @@ class Database:
             self._tables = [row[0] for row in result.fetchall()]
         return self._tables
 
-
+    @property
+    def views(self) -> List[str]:
+        """
+        Returns the list of views in the database
+        :return:
+        """
+        if not self._views:
+            if 'duckdb' in self.url:
+                query = "SHOW VIEWS;"
+            elif 'postgresql' in self.url:
+                query = "SELECT table_name FROM information_schema.views WHERE table_schema = 'public';"
+            result = self.connection.execute(sql.text(query))
+            self._views = [row[0] for row in result.fetchall()]
+        return self._views
 
     @property
     def connection(self) -> Union[duckdb.DuckDBPyConnection, sqlalchemy.engine.Connection]:
