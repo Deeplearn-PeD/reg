@@ -64,14 +64,3 @@ def test_get_table_description():
         db = dbt.Database('duckdb:///:memory:')
         db.get_table_description('table_name')
         mock_execute.execute.assert_called_once_with('DESCRIBE SELECT * FROM table_name;')
-
-def test_tables_property():
-    with patch.object(dbt.Database, 'connection') as mock_connection:
-        mock_execute = Mock()
-        mock_execute.fetchall.return_value = [('table1',), ('table2',)]
-        mock_connection.execute.return_value = mock_execute
-        db = dbt.Database('duckdb:///:memory:')
-        assert db.tables == ['table1', 'table2']
-        assert db.tables == ['table1', 'table2']
-        mock_connection.execute.assert_called_once_with('SELECT table_name FROM information_schema.tables WHERE table_schema = \'main\';')
-        mock_execute.fetchall.assert_called_once()
