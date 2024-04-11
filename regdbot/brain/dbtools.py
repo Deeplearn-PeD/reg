@@ -18,6 +18,26 @@ class Database:
         :param dburl: any standard database url or csv:mycsv.csv for csv files
         """
         self.url = dburl
+        self._tables = []
+
+    @property
+    def tables(self) -> List[str]:
+        """
+        Returns the list of tables in the database
+        :return:
+        """
+        if not self._tables:
+            if 'duckdb' in self.url:
+                query = "SHOW TABLES;"
+            elif 'postgresql' in self.url:
+                query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+            elif 'csv' in self.url:
+                query = f"DESCRIBE TABLE '{self.url.split(':')[1]}';"
+            result = self.connection.execute(sql.text(query))
+            self._tables = [row[0] for row in result.fetchall()]
+        return self._tables
+
+
 
     @property
     def connection(self) -> Union[duckdb.DuckDBPyConnection, sqlalchemy.engine.Connection]:
