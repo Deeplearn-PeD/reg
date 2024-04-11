@@ -21,6 +21,21 @@ class Reggie:
     def ask(self, question):
         return self.bot.ask(question)
 
+    def prepare_db(self, db:str, tables: Tuple[str]=None):
+        """
+        Prepare a database for querying
+        :param db: database url
+        :param tables: table name or tuple of names
+        """
+        prompt = PromptTemplate(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'), language=self.bot.active_language)
+        tables = prompt.tables if tables is None else tables
+        for table in tables:
+            description = input(f"Entre uma descrição para tabela {table} ou <enter>:")
+            prompt.db._create_semantic_view(table)
+            prompt.add_table_description(table, description)
+
+        self.bot.set_prompt(prompt)
+
     def auto(self, db:str, tables: Tuple[str]):
         """
         Execute query automatically just through the CLI
