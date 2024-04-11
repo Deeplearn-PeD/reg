@@ -21,6 +21,21 @@ class Database:
         self.url = dburl
         self.dialect = self.url.split(":")[0]
 
+        self._tables = []
+
+
+    @property
+    def tables(self) -> List[str]:
+        if not self._tables:
+            if 'duckdb' in self.url:
+                query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main';"
+            elif 'postgresql' in self.url:
+                query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+            elif 'csv' in self.url:
+                return [self.url.split(":")[1]]
+            result = self.connection.execute(sql.text(query))
+            self._tables = [row[0] for row in result.fetchall()]
+        return self._tables
     @property
     def connection(self) -> Union[duckdb.DuckDBPyConnection, sqlalchemy.engine.Connection]:
         if 'duckdb' in self.url:
