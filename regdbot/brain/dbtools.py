@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple, Any, Union
 import dotenv
 import os
+import ollama
 import loguru
 import duckdb
 import sqlalchemy
@@ -49,6 +50,38 @@ class Database:
         result = self.connection.execute(sql.text(query))
 
         return result.fetchall()
+
+    def _create_semantic_view(self, table_name: str, view_name: str = None, duckdb_view: bool = False) -> None:
+        """
+        Creates a view in the database with semantic renaming of the columns for enhanced readability
+        :param table_name: table name in the database to create the view on
+        :param view_name: view name. if not given will default to table_name_semanticview
+        :duckdb_view: if True, will create an in memory duckdb view instead of a sql view
+        """
+        # get current table description
+        table_description = self.get_table_description(table_name)
+        # Prompt gemma model through ollama to generate SQL code with semantic naming for the view
+        response = ollama.generate(
+            model="gemma",
+            system=f"You will be asked to create SQL code in {self.dialect} dialect, to create a view with semantic "
+                   f"names for the columns of a table.",
+            prompt=f"Generate SQL code with semantic names for the columns of table {table_name}\n",
+        )
+        # run the response through the duckdb connection to create the view
+        self.connection.execute(sql.text(response['response']))
+        # parse the response to get the column descriptions
+        column_descriptions = {}
+        for line in response.text.split("\n"):
+            if line.startswith("Column"):
+                column_name = line.split(":")[1].strip()
+            elif line.startswith("Description"):
+                description = line.split(":")[1].strip()
+                column_descriptions[column_name] = description
+
+        logger.info(f"Created semantic view {view_name} on table {table_name}")
+        logger.info(f"using the following SQL code:\n{response['response']}")
+        print(column_descriptions)
+        return column_descriptions
 
 
 
