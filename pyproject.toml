@@ -10,7 +10,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-reggie = "regdbot.main:main"
+reggie = "regdbot.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
