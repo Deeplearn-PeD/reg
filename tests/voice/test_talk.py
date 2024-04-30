@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from regdbot.voice import talk
+from base_agent.voice import talk
 
 def test_speaker_initialization_sets_correct_attributes():
     speaker = talk.Speaker(voice='faber-medium', language='pt_BR')

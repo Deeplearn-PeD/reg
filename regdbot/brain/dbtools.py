@@ -72,7 +72,7 @@ class Database:
     def get_table_description(self, table_name: str) -> List[Dict[str, Any]]:
         """
         Returns the description of the table using duckdb
-        :param table_name:
+        :param table_name: name of the table
         :return:
         """
         if 'duckdb' in self.url:
@@ -80,7 +80,7 @@ class Database:
         elif 'postgresql' in self.url:
             query = f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table_name}';"
         elif 'csv' in self.url:
-            result = get_csv_description(self.url)
+            result = get_csv_description(self.url.split(":")[-1])
             return result
         result = self.connection.execute(sql.text(query))
 
