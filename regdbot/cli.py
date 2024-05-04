@@ -3,7 +3,7 @@ from typing import List, Tuple, Dict, Union, Any
 import fire
 from regdbot.brain import RegDBot
 from regdbot.brain.sqlprompts import PromptTemplate
-from regdbot.voice import talk
+from base_agent.voice import talk
 import dotenv
 
 dotenv.load_dotenv()
@@ -18,6 +18,11 @@ class Reggie:
         self.bot.say(text)
 
     def ask(self, question):
+        """
+        Ask Reggie a question.
+        :param question: any textual prompt
+        :return:
+        """
         return self.bot.ask(question)
 
     def prepare_db(self, db: str, tables: Tuple[str] = None):
@@ -82,5 +87,5 @@ class Reggie:
 
 
 def main():
-    reggie = Reggie(model='gemma')
+    reggie = Reggie(model='llama')
     fire.Fire(reggie)

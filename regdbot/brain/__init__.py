@@ -9,6 +9,7 @@ from ollama import Client
 import ollama
 from base_agent.llminterface import LangModel
 from regdbot.brain.sqlprompts import PromptTemplate
+from regdbot.brain import dbtools as dbt
 import dotenv
 import os
 
@@ -22,6 +23,16 @@ class RegDBot(Persona):
         self.llm = LangModel(model=model)
         self.prompt_template = None
         self.context_prompt: str = ""
+        self.active_db = None
+
+    def load_database(self, dburl: str, dialect: str = 'postgresql'):
+        """
+        Load the database connection for prompt generation
+        :param dburl: URL for the database connection
+        :param dialect: kind of SQL dialect to use
+        """
+        self.prompt_template = PromptTemplate(dburl=dburl, dialect=dialect, language=self.active_language)
+        self.active_db = dbt.Database(dburl)
 
     @property
     def context(self):
