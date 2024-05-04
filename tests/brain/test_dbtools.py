@@ -15,7 +15,7 @@ tmp_path = pytest.fixture(lambda: './fixtures')
 
 def test_get_table_description():
     table_name = 'startrek_table'
-    db = dbt.Database('csv:fixtures/Star_Trek-Season_1.csv')
+    db = dbt.Database('csv:brain/fixtures/Star_Trek-Season_1.csv')
     result = db.get_table_description(table_name)
 
     assert 'season_num' in result[0]
@@ -28,7 +28,7 @@ def test_get_csv_description_from_url():
     assert 'episode_num' in result[1]
 
 def test_get_csv_description_from_file():
-    file_path = 'fixtures/Star_Trek-Season_1.csv'
+    file_path = 'brain/fixtures/Star_Trek-Season_1.csv'
     result = dbt.get_csv_description(file_path)
     assert 'season_num' in result[0]
     assert 'episode_num' in result[1]
