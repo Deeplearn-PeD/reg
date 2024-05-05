@@ -90,6 +90,8 @@ class Database:
         self.table_descriptions[table_name] = parsed_result
 
         return parsed_result
+    def _count_non_null_rows(self, table_name: str) -> List[int:]:
+        pass
 
     def _get_sample_rows(self, table_name: str, num_rows: int = 5) -> List[Tuple[str, Any]]:
         """
@@ -129,19 +131,20 @@ class Database:
         table_description = self.get_table_description(table_name)
         # Prompt gemma model through ollama to generate SQL code with semantic naming for the view
         view_name = view_name if view_name else f"{table_name}_semanticview"
-        code = ollama.generate(
-            model="codegemma:instruct",
-            system=f"You will be asked to create SQL code in {self.dialect} dialect, to create a view with semantic "
-                   f"names for all the columns of a table. Be mindful of including only existing columns, as listed in the context. Do not use uppercase letters or spaces in the semantic column names."
-                   f"Don't use spaces, use underscores instead in variable names. Return pure and complete SQL clauses, which can be executed, without any accessory text."
-                    f"When you cannot propose a semantic name, maintain the original name\n",
-            prompt=f"Generate a view with semantic names for the columns of table {table_name}\n"
-                   f"which include the following columns:\n{table_description}",
-        )
+        context = f"You will be asked to create SQL code in {self.dialect} dialect, to create a view with semantic "\
+        f"names for all the columns of a table. Be mindful of including only existing columns, as listed in the context. Do not use uppercase letters or spaces in the semantic column names."\
+        f"Don't use spaces, use underscores instead in variable names. Return pure and complete SQL clauses, which can be executed, without any accessory text."\
+        f"When you cannot propose a semantic name, maintain the original name\n"
+        prompt = f"Generate a view of table {table_name}, named {view_name}  "\
+        "renaming column names with semantic names "\
+        f"including the columns described bellow:\\n{table_description}"
+        LM = LangModel(model='gpt')
+
+        code = LM.get_response(question=prompt, context=context)
         result = self.run_query(code, table_name)
         # parse the response to get the column descriptions
         column_descriptions = {}
-        for line in (result.text.split("\n")):
+        for line in (result.split("\n")):
             if line.startswith("Column"):
                 column_name = line.split(":")[1].strip()
             elif line.startswith("Description"):
@@ -149,11 +152,11 @@ class Database:
                 column_descriptions[column_name] = description
 
         logger.info(f"Created semantic view {view_name} on table {table_name}")
-        logger.info(f"using the following SQL code:\n{code['response']}")
+        logger.info(f"using the following SQL code:\n{code}")
         # print(column_descriptions)
         return column_descriptions
 
-    def run_query(self, query, table_name: str, debug_tries: int = 5) -> List[Tuple[str, Any]]:
+    def run_query(self, query: str, table_name: str, debug_tries: int = 5) -> List[Tuple[str, Any]]:
         """
         Run a query through the database connection, debugging it if necessary
         :param query: SQL query to run
@@ -162,19 +165,27 @@ class Database:
         :return:
         """
         # run the response through the duckdb connection to create the view
+        if isinstance(query, str):
+            sqlcode = query.split("```sql")[1].strip("```").strip() if '```sql' in query else query.strip()
+        else:
+            raise TypeError("Query must be a string")
+
         tries = 0
-        sqlcode = query['response'].split("```sql")[1].strip("```") if '```sql' in query['response'] else query['response']
-        result = ""
-        while tries < 5:
+        while tries < debug_tries:
             try:
+                assert sqlcode.strip().startswith("CREATE VIEW")
                 result = self.connection.execute(sql.text(sqlcode))
                 break
+            except AssertionError as eas:
+                logger.error(f"{eas} error: Query is not a CREATE VIEW CODE: {sqlcode[:100]},\n debugging the code")
+                sqlcode = self.debug_query(sqlcode, table_name)
+                tries += 1
             except Exception as e:
-                logger.error(f"Error running query: {e}, debugging this code: {sqlcode}")
+                logger.error(f"{e} Error running query: {sqlcode[:100]},\n debugging the code")
                 sqlcode = self.debug_query(sqlcode, table_name)
                 tries += 1
 
-        return result
+        return sqlcode
 
     def debug_query(self, query: str, table_name: str) -> List[Tuple[str, Any]]:
         """
@@ -182,12 +193,13 @@ class Database:
         :param query: SQL query to run
         :return: result of the query
         """
-        LM = LangModel(model='codegemma:instruct')
-        question = (f"Given the following defective SQL query, please fix its bugs and return a working version"
+        LM = LangModel(model='codegemma')
+        question = (f"Given the following defective SQL query of table {table_name}, please fix its bugs and return a working version"\
                     f"Return pure, complete SQL code without explanatory text:\n\n{query}")
         # print(self.table_descriptions[table_name])
         response = LM.get_response(question, self.table_descriptions[table_name])
         new_code = response if isinstance(response, str) else response['response']
+        new_code = new_code.split("```")[1].strip("```").strip() if '```' in new_code else new_code.strip()
         return new_code
 def get_duckdb_connection(url: str) -> object:
     """

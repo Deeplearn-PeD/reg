@@ -87,5 +87,5 @@ class Reggie:
 
 
 def main():
-    reggie = Reggie(model='llama')
+    reggie = Reggie(model='wizard')
     fire.Fire(reggie)
