@@ -12,6 +12,11 @@ def memdb():
 tmp_path = pytest.fixture(lambda: './fixtures')
 
 
+def test_get_sample_data():
+    db = dbt.Database('csv:brain/fixtures/Star_Trek-Season_1.csv')
+    result = db._get_sample_rows('startrek_table')
+    assert isinstance(result, list)
+    assert len(result) == 5
 
 def test_get_table_description():
     table_name = 'startrek_table'

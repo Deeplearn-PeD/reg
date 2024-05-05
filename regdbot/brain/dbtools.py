@@ -132,10 +132,10 @@ class Database:
         code = ollama.generate(
             model="codegemma:instruct",
             system=f"You will be asked to create SQL code in {self.dialect} dialect, to create a view with semantic "
-                   f"names for all the columns of a table. Do not use uppercase letters or spaces in the semantic column names."
-                   f"If you need to use spaces, use underscores instead. Return pure and complete SQL clauses, which can be executed, without any accessory text."
+                   f"names for all the columns of a table. Be mindful of including only existing columns, as listed in the context. Do not use uppercase letters or spaces in the semantic column names."
+                   f"Don't use spaces, use underscores instead in variable names. Return pure and complete SQL clauses, which can be executed, without any accessory text."
                     f"When you cannot propose a semantic name, maintain the original name\n",
-            prompt=f"Generate SQL code with semantic names for the columns of table {table_name}\n"
+            prompt=f"Generate a view with semantic names for the columns of table {table_name}\n"
                    f"which include the following columns:\n{table_description}",
         )
         result = self.run_query(code, table_name)
@@ -153,7 +153,14 @@ class Database:
         # print(column_descriptions)
         return column_descriptions
 
-    def run_query(self, query, table_name: str):
+    def run_query(self, query, table_name: str, debug_tries: int = 5) -> List[Tuple[str, Any]]:
+        """
+        Run a query through the database connection, debugging it if necessary
+        :param query: SQL query to run
+        :param table_name: Table name to run the query on
+        :param debug_tries: number of times to try debugging the query
+        :return:
+        """
         # run the response through the duckdb connection to create the view
         tries = 0
         sqlcode = query['response'].split("```sql")[1].strip("```") if '```sql' in query['response'] else query['response']
