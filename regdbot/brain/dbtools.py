@@ -34,6 +34,9 @@ class Database:
         if not self._tables:
             if 'duckdb' in self.url:
                 query = "SHOW TABLES;"
+                result = self.connection.execute(query)
+                self._tables = [row[0] for row in result.fetchall()]
+                return self._tables
             elif 'postgresql' in self.url:
                 query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
             elif 'csv' in self.url:
@@ -79,12 +82,14 @@ class Database:
         """
         if 'duckdb' in self.url:
             query = f"DESCRIBE SELECT * FROM {table_name};"
+            result = self.connection.execute(query).fetchall()
         elif 'postgresql' in self.url:
             query = f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table_name}';"
+            result = self.connection.execute(sql.text(query)).fetchall()
         elif 'csv' in self.url:
             result = get_csv_description(self.url.split(":")[-1])
             return result
-        result = self.connection.execute(sql.text(query)).fetchall()
+
         sample_rows = self._get_sample_rows(table_name)
         parsed_result = self._parse_table_description(result, sample_rows)
         self.table_descriptions[table_name] = parsed_result
@@ -102,12 +107,14 @@ class Database:
         """
         if 'duckdb' in self.url:
             query = f"SELECT * FROM {table_name} LIMIT {num_rows};"
+            result = self.connection.execute(query).fetchall()
         elif 'postgresql' in self.url:
             query = f"SELECT * FROM {table_name} LIMIT {num_rows};"
+            result = self.connection.execute(sql.text(query)) .fetchall()
         elif 'csv' in self.url:
             query = f"SELECT * FROM '{self.url.split(':')[1]}' LIMIT {num_rows};"
             return self.connection.execute(query).fetchall()
-        result = self.connection.execute(sql.text(query)) .fetchall()
+
         return result
 
     def _parse_table_description(self, table_description: str, sample: List) -> str:
@@ -210,7 +217,8 @@ def get_duckdb_connection(url: str) -> object:
     if url == 'duckdb:///:memory:':
         return duckdb.connect()
     else: # for persistent databases
-        return duckdb.connect(url)
+        pth = url.split(":///")[1]
+        return duckdb.connect(pth)
 
 
 
