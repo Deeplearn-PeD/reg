@@ -148,7 +148,7 @@ class Database:
         LM = LangModel(model='gpt')
 
         code = LM.get_response(question=prompt, context=context)
-        result = self.run_query(code, table_name)
+        code = self.check_query(code, table_name)
         # parse the response to get the column descriptions
         column_descriptions = {}
         for line in (result.split("\n")):
@@ -163,7 +163,7 @@ class Database:
         # print(column_descriptions)
         return column_descriptions
 
-    def run_query(self, query: str, table_name: str, debug_tries: int = 5) -> List[Tuple[str, Any]]:
+    def check_query(self, query: str, table_name: str, debug_tries: int = 5) -> List[Tuple[str, Any]]:
         """
         Run a query through the database connection, debugging it if necessary
         :param query: SQL query to run
@@ -178,6 +178,7 @@ class Database:
             raise TypeError("Query must be a string")
 
         tries = 0
+        result = None
         while tries < debug_tries:
             try:
                 assert sqlcode.strip().startswith("CREATE VIEW")
@@ -208,6 +209,24 @@ class Database:
         new_code = response if isinstance(response, str) else response['response']
         new_code = new_code.split("```")[1].strip("```").strip() if '```' in new_code else new_code.strip()
         return new_code
+
+    def run_query(self, query: str) -> List[Tuple[str, Any]]:
+        """
+        Run a query through the database connection
+        :param query: SQL query to run
+        :return: result of the query
+        """
+        if isinstance(query, str):
+            sqlcode = query.split("```sql")[1].strip("```").strip() if '```sql' in query else query.strip()
+        else:
+            raise TypeError("Query must be a string")
+        if 'duckdb' in self.url:
+            result = self.connection.execute(sqlcode)
+        elif 'postgresql' in self.url:
+            result = self.connection.execute(sql.text(sqlcode))
+        elif 'csv' in self.url:
+            result = self.connection.execute(sqlcode)
+        return result.fetchall()
 def get_duckdb_connection(url: str) -> object:
     """
     Returns a connection to a duckdb database

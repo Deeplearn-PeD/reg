@@ -42,15 +42,16 @@ class Reggie:
 
         self.bot.set_prompt(prompt)
 
-    def auto(self, db: str, tables: Tuple[str]):
+    def auto(self, db: str):
         """
         Execute query automatically just through the CLI
         :param db: database url
         :param tables: table name or tuple of names
         """
+        self.bot.load_database(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'), dialect=db)
         prompt = PromptTemplate(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'),
                                 language=self.bot.active_language)
-        for table in tables:
+        for table in prompt.db.tables:
             description = input(f"Entre uma descrição para tabela {table} ou <enter>:")
             prompt.add_table_description(table, description)
 
@@ -59,7 +60,7 @@ class Reggie:
               len(self.bot.prompt_template.system_preamble[self.bot.active_language
                   ][:2048].split()))
         # print(self.bot.prompt_template.system_preamble)
-        question = input("O que você deseja saber?")
+        question = input("What do you want to know?")
         print(self.ask(question))
 
     def introduction(self):

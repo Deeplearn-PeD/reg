@@ -47,7 +47,18 @@ class RegDBot(Persona):
 
     def ask(self, question: str):
         response = self.get_response(question)
-        return response
+        preamble, query, explanation = self._parse_response(response)
+        if self.active_db is not None:
+            result = self.active_db.run_query(query)
+        answer = f"{preamble}\n\n{query}\n\n{result}"
+        return answer
+
+    def _parse_response(self, response):
+        preamble = response.split('```sql')[0]
+        query = response.split('```sql')[1].split('```')[0]
+        explanation = response.split('```sql')[1].split('```')[1]
+        return preamble, query, explanation
+
 
     def get_response(self, question):
         response =  self.llm.get_response(question=question, context=self.prompt_template.get_prompt())

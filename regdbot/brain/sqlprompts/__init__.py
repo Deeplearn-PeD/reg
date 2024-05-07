@@ -34,9 +34,8 @@ class PromptTemplate:
 
 
     def add_table_description(self, table_name: str, description: str) -> None:
-        for table in self.db.get_table_description(table_name):
-            description += f"{table[0]}: {table[1]}\n"
-            self.system_preamble[self.language] += f"{table_name}: \n{description}"
+        description = self.db.get_table_description(table_name)
+        self.system_preamble[self.language] += f"{table_name}: \n\n{description}"
 
 
     def get_prompt(self):
