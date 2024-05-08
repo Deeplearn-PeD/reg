@@ -15,14 +15,28 @@ import os
 
 dotenv.load_dotenv()
 
+system_preamble = {'en_US': f"""
+        Given an input question about data in a relational database, 
+        create a syntactically correct query that will answer the question.
+        
+        You can use the following tables in your query:
+        
+        """,
+                   'pt_BR': f"""
+        Dada uma pergunta de entrada sobre dados em um banco de dados relacional,
+        crie uma consulta sintaticamente correta que responderá à pergunta.
+        
+        Você pode usar as seguintes tabelas em sua consulta:
+        
+        """
+                   }
 
 
 class RegDBot(Persona):
-    def __init__(self, name: str = 'Reggie D. Bot', languages=['pt_BR', 'en'], model: str='gpt-4-0125-preview'):
-        super().__init__(name=name, languages=languages,model=model)
+    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4-0125-preview'):
+        super().__init__(name=name, model=model)
         self.llm = LangModel(model=model)
-        self.prompt_template = None
-        self.context_prompt: str = ""
+        self.context_prompt: str = system_preamble[self.active_language]
         self.active_db = None
 
     def load_database(self, dburl: str, dialect: str = 'postgresql'):
@@ -31,8 +45,8 @@ class RegDBot(Persona):
         :param dburl: URL for the database connection
         :param dialect: kind of SQL dialect to use
         """
-        self.prompt_template = PromptTemplate(dburl=dburl, dialect=dialect, language=self.active_language)
         self.active_db = dbt.Database(dburl)
+        self.context_prompt += f"\nYou are analyzing a {dialect} database\n{system_preamble[self.active_language]}.\n{self.active_db.tables}"
 
     @property
     def context(self):
@@ -41,7 +55,6 @@ class RegDBot(Persona):
     def set_context(self, context: str) -> None:
         self.context_prompt = context
 
-
     def set_prompt(self, prompt_template):
         self.prompt_template = prompt_template
 
@@ -49,6 +62,7 @@ class RegDBot(Persona):
         response = self.get_response(question)
         preamble, query, explanation = self._parse_response(response)
         if self.active_db is not None:
+            query = self.active_db.check_query(query)
             result = self.active_db.run_query(query)
         answer = f"{preamble}\n\n{query}\n\n{result}"
         return answer
@@ -59,13 +73,9 @@ class RegDBot(Persona):
         explanation = response.split('```sql')[1].split('```')[1]
         return preamble, query, explanation
 
-
     def get_response(self, question):
-        response =  self.llm.get_response(question=question, context=self.prompt_template.get_prompt())
+        response = self.llm.get_response(question=question, context=self.context_prompt)
         return response
 
     def get_prompt(self):
         return self.context_prompt
-
-
-

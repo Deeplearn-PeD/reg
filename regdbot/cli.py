@@ -4,6 +4,7 @@ import fire
 from regdbot.brain import RegDBot
 from regdbot.brain.sqlprompts import PromptTemplate
 from base_agent.voice import talk
+from regdbot.brain import statements
 import dotenv
 
 dotenv.load_dotenv()
@@ -49,16 +50,18 @@ class Reggie:
         :param tables: table name or tuple of names
         """
         self.bot.load_database(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'), dialect=db)
-        prompt = PromptTemplate(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'),
-                                language=self.bot.active_language)
-        for table in prompt.db.tables:
-            description = input(f"Entre uma descrição para tabela {table} ou <enter>:")
-            prompt.add_table_description(table, description)
+        # tbl_desc = {}
+        # for table in self.bot.active_db.tables:
+        #     description = self.bot.get_response(f"How would you briefly describe the contents of table {table} based on its name?")
+        #     description = description.split('.')[0]
+        #     print(f"Table {table}: {description}")
+        #     description = input(f"Enter a description for  table {table} or <enter>\n to accept the description above:")
+        #     tbl_desc[table] = description
 
-        self.bot.set_prompt(prompt)
-        print("Approximate # of tokens in context: ",
-              len(self.bot.prompt_template.system_preamble[self.bot.active_language
-                  ][:2048].split()))
+
+        # print("Approximate # of tokens in context: ",
+        #       len(self.bot.prompt_template.system_preamble[self.bot.active_language
+        #           ][:2048].split()))
         # print(self.bot.prompt_template.system_preamble)
         question = input("What do you want to know?")
         print(self.ask(question))
@@ -68,17 +71,16 @@ class Reggie:
             self.say(line)
         self.get_db_info()
 
-    def get_db_info(self):
-
-        self.say(talk.db_questions[self.bot.active_language][0])
+    def info(self):
+        self.say(statements.db_questions[self.bot.active_language][0])
         dbtype = input('Escolha postgresql, duckdb ou csv:')
-        self.say(talk.db_questions[self.bot.active_language][1])
+        self.say(statements.db_questions[self.bot.active_language][1])
         self.say('OK!')
 
         prompt = PromptTemplate(os.getenv('PGURL') if dbtype == 'postgresql' else os.getenv('DUCKURL'),
                                 language=self.bot.active_language)
 
-        for q in talk.table_questions[self.bot.active_language]:
+        for q in statements.table_questions[self.bot.active_language]:
             self.say(q)
         table_names = input('Nome(s):')
         table_names = table_names.split(',')
@@ -88,5 +90,5 @@ class Reggie:
 
 
 def main():
-    reggie = Reggie(model='wizard')
+    reggie = Reggie(model='wizard', language=os.environ.get('LANGUAGE', 'en_US'))
     fire.Fire(reggie)

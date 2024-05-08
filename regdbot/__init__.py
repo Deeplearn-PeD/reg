@@ -8,10 +8,10 @@ from regdbot.persona_prompts import sql_retrieval_augmented
 from base_agent import BasePersona
 from typing import List, Dict, Any, Union
 
-
+languages = ['pt_BR', 'en_US']
 
 class Persona(BasePersona):
-    def __init__(self, name: str='Reggie D. Bot', model: str='gpt-4-0125-preview',  languages=['pt_BR','en'], ):
+    def __init__(self, name: str='Reggie D. Bot', model: str='gpt-4-0125-preview'):
         super().__init__(name=name, model=model, languages=languages)
         self.name = name
         self.languages = languages
