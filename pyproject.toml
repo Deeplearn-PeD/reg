@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "reg-d-bot"
-version = "0.1.0"
+version = "0.1.1"
 description = "AI bot specialized in Database exploration"
 authors = ["Flávio Codeço Coelho <fccoelho@gmail.com>"]
 license = "GPL-v3"
@@ -33,6 +33,11 @@ pytest = "^8.1.1"
 pytest-integration = "^0.2.3"
 pytest-cov = "^4.0.0"
 mypy= "^1.9.0"
+
+
+[tool.poetry.group.pre-commit.dependencies]
+pre-commit = "^3.7.0"
+ruff = "^0.4.3"
 
 [build-system]
 requires = ["poetry-core"]
