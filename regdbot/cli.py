@@ -89,5 +89,5 @@ class Reggie:
 
 
 def main():
-    reggie = Reggie(model='gpt', language=os.environ.get('LANGUAGE', 'en_US'))
+    reggie = Reggie(model='wizard', language=os.environ.get('LANGUAGE', 'en_US'))
     fire.Fire(reggie)

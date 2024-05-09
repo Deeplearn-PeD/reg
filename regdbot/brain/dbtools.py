@@ -210,7 +210,7 @@ class Database:
         response = LM.get_response(question, self.table_descriptions[table_name])
         response = self._clean_query_code(response)
         new_code = response if isinstance(response, str) else response['response']
-        new_code = self.clean_query_code(new_code)
+        new_code = self._clean_query_code(new_code)
         return new_code
 
     def _clean_query_code(self, query: str) -> str:

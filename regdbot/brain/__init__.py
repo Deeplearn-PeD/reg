@@ -64,6 +64,7 @@ class RegDBot(Persona):
         :param table: Table to query before generating the response
         :return:
         """
+        question_plus = question + f"\nPlease take into acount this description of the table:\n {self.active_db.table_descriptions[table]}"
         response = self.get_response(question)
         preamble, query, explanation = self._parse_response(response)
         if self.active_db is not None:
