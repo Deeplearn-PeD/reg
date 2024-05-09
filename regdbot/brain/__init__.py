@@ -8,7 +8,6 @@ from openai import OpenAI
 from ollama import Client
 import ollama
 from base_agent.llminterface import LangModel
-from regdbot.brain.sqlprompts import PromptTemplate
 from regdbot.brain import dbtools as dbt
 import dotenv
 import os
@@ -58,11 +57,17 @@ class RegDBot(Persona):
     def set_prompt(self, prompt_template):
         self.prompt_template = prompt_template
 
-    def ask(self, question: str):
+    def ask(self, question: str, table: str = None):
+        """
+        Ask the bot a question about a table in the database.
+        :param question: Question to ask the bot about the specified table
+        :param table: Table to query before generating the response
+        :return:
+        """
         response = self.get_response(question)
         preamble, query, explanation = self._parse_response(response)
         if self.active_db is not None:
-            query = self.active_db.check_query(query)
+            query = self.active_db.check_query(query.strip('\n'), table)
             result = self.active_db.run_query(query)
         answer = f"{preamble}\n\n{query}\n\n{result}"
         return answer

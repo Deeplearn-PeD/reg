@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple, Any, Union
 import dotenv
 import os
+import re
 import ollama
 import loguru
 import duckdb
@@ -80,6 +81,8 @@ class Database:
         :param table_name: name of the table
         :return:
         """
+        if table_name in self.table_descriptions:
+            return self.table_descriptions[table_name]
         if 'duckdb' in self.url:
             query = f"DESCRIBE SELECT * FROM {table_name};"
             result = self.connection.execute(query).fetchall()
@@ -173,7 +176,7 @@ class Database:
         """
         # run the response through the duckdb connection to create the view
         if isinstance(query, str):
-            sqlcode = query.split("```sql")[1].strip("```").strip() if '```sql' in query else query.strip()
+            sqlcode = self._clean_query_code(query)
         else:
             raise TypeError("Query must be a string")
 
@@ -181,16 +184,15 @@ class Database:
         result = None
         while tries < debug_tries:
             try:
-                assert sqlcode.strip().startswith("CREATE VIEW")
-                result = self.connection.execute(sql.text(sqlcode))
+                if 'duckdb' in self.url:
+                    result = self.connection.execute(sqlcode)
+                elif 'postgresql' in self.url:
+                    result = self.connection.execute(sql.text(sqlcode))
                 break
-            except AssertionError as eas:
-                logger.error(f"{eas} error: Query is not a CREATE VIEW CODE: {sqlcode[:100]},\n debugging the code")
-                sqlcode = self.debug_query(sqlcode, table_name)
-                tries += 1
             except Exception as e:
                 logger.error(f"{e} Error running query: {sqlcode[:100]},\n debugging the code")
                 sqlcode = self.debug_query(sqlcode, table_name)
+                sqlcode = self._clean_query_code(sqlcode)
                 tries += 1
 
         return sqlcode
@@ -206,9 +208,31 @@ class Database:
                     f"Return pure, complete SQL code without explanatory text:\n\n{query}")
         # print(self.table_descriptions[table_name])
         response = LM.get_response(question, self.table_descriptions[table_name])
+        response = self._clean_query_code(response)
         new_code = response if isinstance(response, str) else response['response']
-        new_code = new_code.split("```")[1].strip("```").strip() if '```' in new_code else new_code.strip()
+        new_code = self.clean_query_code(new_code)
         return new_code
+
+    def _clean_query_code(self, query: str) -> str:
+        """
+        Clear the query code from any non-SQL code using regular expressions
+        :param query: SQL query to clear
+        :return: cleaned SQL query
+        """
+        # Remove "```sql" and "sql```" tags
+        sql_code = re.sub(r'```sql|sql```', '', query)
+        # remove any remaining backticks
+        sql_code = re.sub(r'```', '', sql_code)
+
+        # Remove leading and trailing whitespace
+        sql_code = sql_code.lstrip('sql')
+        sql_code = sql_code.strip()
+
+        # Remove whitespace and newlines
+        sql_code = re.sub(r'\s+', ' ', sql_code)
+        sql_code = re.sub(r'\n+', '', sql_code)
+
+        return sql_code
 
     def run_query(self, query: str) -> List[Tuple[str, Any]]:
         """
