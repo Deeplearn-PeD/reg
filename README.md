@@ -10,6 +10,6 @@ Reggie D. Bot is an AI specialized in Database exploration using RAG and other t
 4. install [ollama](https://github.com/ollama/ollama)
 5. Create a `.env` file with the following variables
    1. OPENAI_API_KEY
-   2. PGURL: postgresql://username:password@localhost:5432/dbname
-6. Make sure you have a database as specified in the `PGURL` variable
-7. Run the bot in project directory with the command `reggie auto postgresql <table_name>`
+   2. PGURL: postgresql://username:password@localhost:5432/dbnameMake sure you have a database as specified in the `PGURL` variable or a 
+   7. DUCKURL: duckdb database specified in the `DUCKDB`  variable. For example: `DUCKURL=duckdb:///dengue_clean.db`
+7. Run the bot in project directory with the command `reggie auto postgresql` or `reggie auto duckdb`
