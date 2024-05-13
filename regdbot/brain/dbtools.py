@@ -148,7 +148,7 @@ class Database:
         prompt = f"Generate a view of table {table_name}, named {view_name}  "\
         "renaming column names with semantic names "\
         f"including the columns described bellow:\\n{table_description}"
-        LM = LangModel(model='gpt')
+        LM = LangModel(model='codellama')
 
         code = LM.get_response(question=prompt, context=context)
         code = self.check_query(code, table_name)

@@ -1,0 +1,18 @@
+languages:
+  English:
+    code: "en_US"
+    is_default: true
+  Português:
+    code: "pt_BR"
+
+models:
+  Llama3:
+    code: "llama3"
+    is_default: true
+  Gemma:
+    code: "gemma"
+
+datasets:
+  Netflix:
+    url: ../data/netflix_titles.csv
+    metadata: ../data/netflix-movies-and-tv-shows-metadata.json
