@@ -41,7 +41,12 @@ class Database:
             elif 'postgresql' in self.url:
                 query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
             elif 'csv' in self.url:
-                query = f"DESCRIBE TABLE '{self.url.split(':')[1]}';"
+                fpath = self.url.split(':')[1]
+                query = f"DESCRIBE TABLE '{fpath}';"
+                result = self.connection.execute(query)
+                self._tables = [row[0] for row in result.fetchall()]
+                return self._tables
+
             result = self.connection.execute(sql.text(query))
             self._tables = [row[0] for row in result.fetchall()]
         return self._tables
@@ -154,12 +159,6 @@ class Database:
         code = self.check_query(code, table_name)
         # parse the response to get the column descriptions
         column_descriptions = {}
-        for line in (result.split("\n")):
-            if line.startswith("Column"):
-                column_name = line.split(":")[1].strip()
-            elif line.startswith("Description"):
-                description = line.split(":")[1].strip()
-                column_descriptions[column_name] = description
 
         logger.info(f"Created semantic view {view_name} on table {table_name}")
         logger.info(f"using the following SQL code:\n{code}")

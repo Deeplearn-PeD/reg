@@ -11,6 +11,8 @@ models:
     is_default: true
   Gemma:
     code: "gemma"
+  Llama3-Gradient:
+    code: "llama3-gradient"
 
 datasets:
   Netflix:

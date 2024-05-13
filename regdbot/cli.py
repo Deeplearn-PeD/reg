@@ -4,6 +4,7 @@ import fire
 from regdbot.brain import RegDBot
 from base_agent.voice import talk
 from regdbot.brain import statements
+from regdbot import config
 import dotenv
 import json
 import pprint as pp
@@ -27,21 +28,7 @@ class Reggie:
         """
         return self.bot.ask(question, table)
 
-    # def prepare_db(self, db: str, tables: Tuple[str] = None):
-    #     """
-    #     Prepare a database for querying
-    #     :param db: database url
-    #     :param tables: table name or tuple of names
-    #     """
-    #
-    #     tables = prompt.db.tables if tables is None else tables
-    #     for table in sorted(tables):
-    #         print(table)
-    #         description = input(f"Entre uma descrição para tabela {table} ou <enter>:")
-    #         prompt.db._create_semantic_view(table)
-    #         prompt.add_table_description(table, description)
-    #
-    #     self.bot.set_prompt(prompt)
+
 
     def auto(self, db: str):
         """
@@ -49,6 +36,12 @@ class Reggie:
         :param db: database url
         :param tables: table name or tuple of names
         """
+        if 'postgresql' in db:
+            self.bot.load_database(os.getenv('PGURL'), dialect='postgresql')
+        elif 'duckdb' in db:
+            self.bot.load_database(os.getenv('DUCKURL'), dialect='duckdb')
+        elif 'csv' in db:
+            self.bot.load_database(db, dialect='csv')
         self.bot.load_database(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'), dialect=db)
         tbl_desc = {}
         print("Please wait while I gather information about the database...")
@@ -89,5 +82,5 @@ class Reggie:
 
 
 def main():
-    reggie = Reggie(model='wizard', language=os.environ.get('LANGUAGE', 'en_US'))
+    reggie = Reggie(model='llama', language='en_US')
     fire.Fire(reggie)
