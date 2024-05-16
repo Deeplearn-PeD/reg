@@ -1,4 +1,5 @@
 # Reggie D. Bot
+[![ci](https://github.com/Deeplearn-PeD/reg/workflows/ci/badge.svg)](https://github.com/Deeplearn-PeD/reg/actions?query=workflow%3Aci)
 Reggie D. Bot is an AI specialized in Database exploration using RAG and other techniques.
 
 ![Reggie D. Bot](/reggie.jpeg)
