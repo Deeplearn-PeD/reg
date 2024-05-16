@@ -1,6 +1,6 @@
 # Reggie D. Bot
 ![release](https://github.com/Deeplearn-PeD/reg/workflows/release/badge.svg)
-![lint](https://github.com/Deeplearn-PeD/reg/workflows/lint/badge.svg)
+![lint](https://github.com/Deeplearn-PeD/reg/workflows/pylint/badge.svg)
 
 Reggie D. Bot is an AI specialized in Database exploration using RAG and other techniques.
 
