@@ -59,12 +59,13 @@ class Reggie:
         self.bot.active_db.get_table_description(tbl_name)
 
         question = input("What do you want to know?")
+        self.bot.llm._set_active_model('codellama')
         print(self.ask(question, tbl_name))
 
     def introduction(self):
         for line in talk.introductions[self.bot.active_language]:
             self.say(line)
-        self.get_db_info()
+        self.bot.active_db.get_db_info()
 
     def info(self, dbtype: str):
         """
@@ -82,5 +83,5 @@ class Reggie:
 
 
 def main():
-    reggie = Reggie(model='llama', language='en_US')
+    reggie = Reggie(model='wizardlm2', language='en_US')
     fire.Fire(reggie)
