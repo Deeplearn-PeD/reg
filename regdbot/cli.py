@@ -52,11 +52,11 @@ class Reggie:
         pp.pprint(description)
         while True:
             tbl_name = input("Please name one to query:")
-            if tbl_name in description:
+            if tbl_name.strip() in description:
                 break
             else:
                 print("Table name not found in the list. Please try again.")
-        self.bot.active_db.get_table_description(tbl_name)
+        self.bot.active_db.get_table_description(tbl_name.strip())
 
         question = input("What do you want to know?")
         self.bot.llm._set_active_model('codellama')

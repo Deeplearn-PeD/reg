@@ -73,10 +73,21 @@ class RegDBot(Persona):
         answer = f"{preamble}\n\n{query}\n\n{result}"
         return answer
 
-    def _parse_response(self, response):
-        preamble = response.split('```sql')[0]
-        query = response.split('```sql')[1].split('```')[0]
-        explanation = response.split('```sql')[1].split('```')[1]
+    def _parse_response(self, response: str) -> tuple[str, str, str]:
+        """
+        Parse the response from the language model  into preamble, query, and explanation
+        trying to detect when there is a mix of code and text in the response.
+        :param response: Raw llm response
+        :return:
+        """
+        if '```' in response:
+            preamble = response.split('```sql')[0]
+            query = response.split('```sql')[1].split('```')[0]
+            explanation = response.split('```sql')[1].split('```')[1]
+        else:
+            preamble = ''
+            query = response.strip()
+            explanation = ''
         return preamble, query, explanation
 
     def get_response(self, question):
