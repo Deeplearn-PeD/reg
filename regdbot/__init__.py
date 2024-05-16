@@ -7,6 +7,10 @@ from base_agent.voice import talk
 from regdbot.persona_prompts import sql_retrieval_augmented
 from base_agent import BasePersona
 from typing import List, Dict, Any, Union
+import yaml
+
+with open('regdbot/config.yml', 'r') as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)
 
 languages = ['pt_BR', 'en_US']
 
