@@ -44,3 +44,20 @@ ruff = "^0.4.3"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.git-changelog]
+bump = "auto"
+convention = "basic"
+in-place = true
+filter-commits = "0.5.0.."
+marker-line = "<!-- insertion marker -->"
+output = "output.log"
+parse-refs = false
+parse-trailers = false
+provider = "github"
+repository = "."
+sections = "fix,maint,deps,feat,refactor"
+template = "keepachangelog"
+version-regex = "^## \\\\[(?P<version>v?[^\\\\]]+)"
+versioning = "semver"
+zerover = true
