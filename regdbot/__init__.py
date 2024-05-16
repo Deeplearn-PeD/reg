@@ -6,7 +6,6 @@ for Such as name, language model uses, and basic context sqlprompts defining its
 from base_agent.voice import talk
 from regdbot.persona_prompts import sql_retrieval_augmented
 from base_agent import BasePersona
-from typing import List, Dict, Any, Union
 import yaml
 
 with open('regdbot/config.yml', 'r') as f:
@@ -14,8 +13,9 @@ with open('regdbot/config.yml', 'r') as f:
 
 languages = ['pt_BR', 'en_US']
 
+
 class Persona(BasePersona):
-    def __init__(self, name: str='Reggie D. Bot', model: str='gpt-4-0125-preview'):
+    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4-0125-preview'):
         super().__init__(name=name, model=model, languages=languages)
         self.name = name
         self.languages = languages
@@ -30,4 +30,3 @@ class Persona(BasePersona):
             self.context_prompt = sql_retrieval_augmented[self.active_language]
         else:
             raise ValueError(f"Language {language} not supported by this persona.")
-
