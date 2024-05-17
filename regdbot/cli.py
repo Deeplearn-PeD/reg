@@ -33,13 +33,7 @@ class Reggie:
         Execute query automatically just through the CLI
         :param db: database url
         """
-        if 'postgresql' in db:
-            self.bot.load_database(os.getenv('PGURL'), dialect='postgresql')
-        elif 'duckdb' in db:
-            self.bot.load_database(os.getenv('DUCKURL'), dialect='duckdb')
-        elif 'csv' in db:
-            self.bot.load_database(db, dialect='csv')
-        self.bot.load_database(os.getenv('PGURL') if 'postgresql' in db else os.getenv('DUCKURL'), dialect=db)
+        self._load_db(db)
 
         print("Please wait while I gather information about the database...")
         description = self.bot.get_response(f"Given the list of table names below, please generate a JSON object with "
@@ -60,6 +54,14 @@ class Reggie:
         self.bot.llm._set_active_model('codellama')
         print(self.ask(question, tbl_name))
 
+    def _load_db(self, db):
+        if 'postgresql' in db:
+            self.bot.load_database(os.getenv('PGURL'), dialect='postgresql')
+        elif 'duckdb' in db:
+            self.bot.load_database(os.getenv('DUCKURL'), dialect='duckdb')
+        elif 'csv' in db:
+            self.bot.load_database(db, dialect='csv')
+
     def introduction(self):
         for line in talk.introductions[self.bot.active_language]:
             self.say(line)
@@ -72,12 +74,31 @@ class Reggie:
         """
         self.say(statements.db_questions[self.bot.active_language][1])
         self.say('OK!')
-        self.bot.load_database(os.getenv('PGURL') if dbtype == 'postgresql' else os.getenv('DUCKURL'), dialect=dbtype)
-
-        for q in statements.table_questions[self.bot.active_language]:
-            self.say(q)
+        self._load_db(dbtype)
+        if dbtype.startswith('csv'):
+            self.say('This is a CSV file')
+            self.say('It contains the following columns:')
+            pp.pprint(self.bot.active_db.tables)
+            description = self.bot.active_db.get_table_description('csv')
+            self.say('What do you want to know about this data?')
+            question = input("What do you want to know about this data?")
+            resp = self.ask(question, 'csv')
+        else:
+            for q in statements.table_list[self.bot.active_language]:
+                self.say(q)
+            pp.pprint(self.bot.active_db.tables)
+            for s in statements.table_questions[self.bot.active_language]:
+                self.say(s)
+            while True:
+                tbl_name = input("Please name one to query:")
+                if tbl_name.strip() in self.bot.active_db.tables:
+                    break
+                else:
+                    print("Table name not found in the list. Please try again.")
+            description = self.bot.active_db.get_table_description(tbl_name.strip())
+            self.say(description)
 
 
 def main():
-    reggie = Reggie(model='wizardlm2', language='en_US')
+    reggie = Reggie(model='llama3', language='en_US')
     fire.Fire(reggie)

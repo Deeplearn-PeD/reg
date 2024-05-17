@@ -24,7 +24,7 @@ class Database:
         self._tables = []
         self._views = []
         self.table_descriptions = {}
-        self.dialect = 'duckdb' if 'duckdb' in self.url else 'postgresql' if 'postgresql' in self.url else 'csv'
+        self.dialect = dburl.split(':')[0]#'duckdb' if 'duckdb' in self.url.lower() else 'postgresql' if 'postgresql' in self.url.lower() else 'csv'
 
     @property
     def tables(self) -> List[str]:
@@ -44,8 +44,8 @@ class Database:
                 fpath = self.url.split(':')[1]
                 query = f"DESCRIBE TABLE '{fpath}';"
                 result = self.connection.execute(query)
-                self._tables = [row[0] for row in result.fetchall()]
-                return self._tables
+                columns = [row[0] for row in result.fetchall()]
+                return columns
 
             result = self.connection.execute(sql.text(query))
             self._tables = [row[0] for row in result.fetchall()]
@@ -64,6 +64,7 @@ class Database:
                 query = "SELECT table_name FROM information_schema.views WHERE table_schema = 'public';"
             result = self.connection.execute(sql.text(query))
             self._views = [row[0] for row in result.fetchall()]
+
         return self._views
 
     @property
@@ -96,6 +97,7 @@ class Database:
             result = self.connection.execute(sql.text(query)).fetchall()
         elif 'csv' in self.url:
             result = get_csv_description(self.url.split(":")[-1])
+            self.table_descriptions[table_name] = result
             return result
 
         sample_rows = self._get_sample_rows(table_name)

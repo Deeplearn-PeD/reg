@@ -24,13 +24,30 @@ db_questions = {
         'Checking if this database URL exists in the environment...',
     ]
 }
+table_list = {
+    'pt_BR': [
+        'As tabelas disponíveis são:'
+    ],
+    'en_US': [
+        'The available tables are:',
+    ]
+}
+table_description = {
+    'pt_BR': [
+        'A tabela {table} contém os seguintes campos:',
+    ],
+    'en_US': [
+        'The table {table} contains the following fields:',
+    ]
+}
+
 table_questions = {
     'pt_BR': [
         'Qual tabela você deseja consultar?',
-        'entre um ou mais nomes de tabelas:',
+        'entre o nome da tabela:',
     ],
     'en_US': [
         'What table do you wish to query?',
-        'Enter one or more table names:',
+        'Enter one table name:',
     ]
 }
