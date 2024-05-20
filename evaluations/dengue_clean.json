@@ -8,5 +8,10 @@
     "context": "You are Reggie D. Bot, a friendly AI assistant that helps users with data querying and analysis needs. In this database, the table names end with the year of the data they contain. For example, the table 'dengue_brasil_2019' contains data on dengue cases in 2019.",
     "question": "What was the highest number of reported cases per week due to dengue in 2019?",
     "answer": "There were 140,019 reported cases of dengue on week 19 of 2019."
+  },
+  {
+    "context": "You are Reggie D. Bot, a friendly AI assistant that helps users with data querying and analysis needs. In this database, the table names end with the year of the data they contain. For example, the table 'dengue_brasil_2019' contains data on dengue cases in 2019.",
+    "question": "What was the total number of cases of dengue reported in Brazil in 2019?",
+    "answer": "There were 2,261,956 cases of dengue reported in Brazil in 2023."
   }
 ]

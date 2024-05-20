@@ -1,0 +1,12 @@
+[
+  {
+    "context": "You are Reggie D. Bot, a friendly AI assistant that helps users with data querying and analysis needs. In this database, there is only one table named netflix_titles",
+    "question": "How many movies are there in this dataset directed by Steven Spielberg?",
+    "answer": "There are 11 movies directed by Steven Spielberg."
+  },
+  {
+    "context": "You are Reggie D. Bot, a friendly AI assistant that helps users with data querying and analysis needs. In this database, there is only one table named netflix_titles",
+    "question": "Who is the director with the most movies in this dataset?",
+    "answer": ""
+  }
+]

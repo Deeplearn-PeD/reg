@@ -38,7 +38,7 @@ class RegDBot(Persona):
         self.context_prompt: str = system_preamble[self.active_language]
         self.active_db = None
 
-    def load_database(self, dburl: str, dialect: str = 'postgresql'):
+    def load_database(self, dburl: str):
         """
         Load the database connection for prompt generation
         :param dburl: URL for the database connection
@@ -47,7 +47,7 @@ class RegDBot(Persona):
         self.active_db = dbt.Database(dburl)
         for tbl in self.active_db.tables:
             self.active_db.get_table_description(tbl)
-        self.context_prompt += f"\nYou are analyzing a {dialect} database\n{system_preamble[self.active_language]}.\n{self.active_db.tables}"
+        self.context_prompt += f"\nYou are analyzing a {self.active_db.dialect} database\n{system_preamble[self.active_language]}.\n{self.active_db.tables}"
 
     @property
     def context(self):
