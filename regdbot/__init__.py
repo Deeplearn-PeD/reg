@@ -3,12 +3,13 @@ This package defines a basic AI bot's Personality.
 Starting with a Base class setting the basic parameters
 for Such as name, language model uses, and basic context sqlprompts defining its purpose.
 """
+import os
 from base_agent.voice import talk
 from regdbot.persona_prompts import sql_retrieval_augmented
 from base_agent import BasePersona
 import yaml
-
-with open('regdbot/config.yml', 'r') as f:
+cdir = os.getcwd()
+with open('../regdbot/config.yml', 'r') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 languages = ['pt_BR', 'en_US']

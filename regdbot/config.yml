@@ -14,6 +14,12 @@ models:
   Llama3-Gradient:
     code: "llama3-gradient"
 
+codegen_models:
+  CodeLlama:
+    code: "codellama"
+    is_default: true
+
+
 datasets:
   Netflix:
     url: ../data/netflix_titles.csv

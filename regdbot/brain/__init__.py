@@ -45,6 +45,8 @@ class RegDBot(Persona):
         :param dialect: kind of SQL dialect to use
         """
         self.active_db = dbt.Database(dburl)
+        for tbl in self.active_db.tables:
+            self.active_db.get_table_description(tbl)
         self.context_prompt += f"\nYou are analyzing a {dialect} database\n{system_preamble[self.active_language]}.\n{self.active_db.tables}"
 
     @property
@@ -64,8 +66,8 @@ class RegDBot(Persona):
         :param table: Table to query before generating the response
         :return:
         """
-        if table == 'csv':
-            question_plus = question + f"\nPlease take into acount this description of the table:\n {self.active_db.table_descriptions[table]}"
+        if table is None:
+            question_plus = question
         else:
             question_plus = question + f"\nPlease take into acount this description of the table:\n {self.active_db.table_descriptions[table]}"
         response = self.get_response(question_plus)

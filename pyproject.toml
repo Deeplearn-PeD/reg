@@ -28,7 +28,6 @@ openai = "^1.16.0"
 ollama = "^0.1.8"
 base-ai-agent = {git = "https://github.com/Deeplearn-PeD/base-ai-agent.git"}
 pyaml = "^24.4.0"
-braintrust = "^0.0.128"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

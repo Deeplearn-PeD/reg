@@ -167,7 +167,7 @@ class Database:
         # print(column_descriptions)
         return column_descriptions
 
-    def check_query(self, query: str, table_name: str, debug_tries: int = 5) -> List[Tuple[str, Any]]:
+    def check_query(self, query: str, table_name: str = None, debug_tries: int = 5) -> List[Tuple[str, Any]]:
         """
         Run a query through the database connection, debugging it if necessary
         :param query: SQL query to run
@@ -180,7 +180,8 @@ class Database:
             sqlcode = self._clean_query_code(query)
         else:
             raise TypeError("Query must be a string")
-
+        if table_name is None:
+            table_name = self.tables[-1]
         tries = 0
         result = None
         while tries < debug_tries:
@@ -204,7 +205,7 @@ class Database:
         :param query: SQL query to run
         :return: result of the query
         """
-        LM = LangModel(model='codegemma')
+        LM = LangModel(model='codellama')
         question = (f"Given the following defective SQL query of table {table_name}, please fix its bugs and return a working version"\
                     f"Return pure, complete SQL code without explanatory text:\n\n{query}")
         # print(self.table_descriptions[table_name])
@@ -261,7 +262,7 @@ def get_duckdb_connection(url: str) -> object:
     if url == 'duckdb:///:memory:':
         return duckdb.connect()
     else: # for persistent databases
-        pth = url.split(":///")[1]
+        pth = url.split("://")[1]
         return duckdb.connect(pth)
 
 
