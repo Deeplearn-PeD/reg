@@ -7,7 +7,9 @@ import loguru
 import duckdb
 import sqlalchemy
 from sqlalchemy import create_engine, sql
+from regdbot.brain.utils import extract_code_from_markdown
 from base_agent.llminterface import LangModel
+from duckdb.duckdb import InvalidInputException
 
 
 dotenv.load_dotenv()
@@ -202,7 +204,7 @@ class Database:
             except Exception as e:
                 logger.error(f"{e} Error running query: {sqlcode[:100]},\n debugging the code")
                 sqlcode = self.debug_query(sqlcode, table_name)
-                sqlcode = self._clean_query_code(sqlcode)
+                sqlcode = extract_code_from_markdown(sqlcode)
                 tries += 1
 
         return sqlcode
@@ -218,9 +220,10 @@ class Database:
                     f"Return pure, complete SQL code without explanatory text:\n\n{query}")
         # print(self.table_descriptions[table_name])
         response = LM.get_response(question, self.table_descriptions[table_name])
-        response = self._clean_query_code(response)
-        new_code = response if isinstance(response, str) else response['response']
-        new_code = self._clean_query_code(new_code)
+        # response = self._clean_query_code(response)
+        clean_response = extract_code_from_markdown(response)
+        new_code = clean_response if isinstance(clean_response, str) else clean_response['response']
+        new_code = extract_code_from_markdown(new_code)
         return new_code
 
     def _clean_query_code(self, query: str) -> str:
@@ -260,7 +263,12 @@ class Database:
             result = self.connection.execute(sql.text(sqlcode))
         elif 'csv' in self.url:
             result = self.connection.execute(sqlcode)
-        return result.fetchall()
+        # print(sqlcode)
+        try:
+            return result.fetchall()
+        except InvalidInputException as e:
+            print(e)
+            return []
 def get_duckdb_connection(url: str) -> object:
     """
     Returns a connection to a duckdb database
