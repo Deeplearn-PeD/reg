@@ -9,8 +9,11 @@ from regdbot.persona_prompts import sql_retrieval_augmented
 from base_agent import BasePersona
 import yaml
 cdir = os.getcwd()
-with open('regdbot/config.yml', 'r') as f:
-    config = yaml.load(f, Loader=yaml.FullLoader)
+if 'regdbot' not in os.listdir(cdir):
+    os.chdir('..')
+config = yaml.load(open('regdbot/config.yml', 'r'), Loader=yaml.FullLoader)
+os.chdir(cdir)
+
 
 languages = ['pt_BR', 'en_US']
 
