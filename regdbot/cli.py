@@ -3,6 +3,7 @@ import fire
 from regdbot.brain import RegDBot
 from base_agent.voice import talk
 from regdbot.brain import statements
+from regdbot.brain.utils import extract_code_from_markdown
 from regdbot import config
 import dotenv
 import json
@@ -39,7 +40,7 @@ class Reggie:
         description = self.bot.get_response(f"Given the list of table names below, please generate a JSON object with "
                                             f"one-sentence descriptions for each table's content based on their name. "
                                             f"\n\n{self.bot.active_db.tables}")
-        description = json.loads(description.split('```json')[1].split('```')[0].strip())
+        description = json.loads(extract_code_from_markdown(description).strip())
         print(f"The database specified contain the following tables\n\n")
         pp.pprint(description)
         while True:
@@ -56,11 +57,11 @@ class Reggie:
 
     def _load_db(self, db):
         if 'postgresql' in db:
-            self.bot.load_database(os.getenv('PGURL'), dialect='postgresql')
+            self.bot.load_database(os.getenv('PGURL'))
         elif 'duckdb' in db:
-            self.bot.load_database(os.getenv('DUCKURL'), dialect='duckdb')
+            self.bot.load_database(os.getenv('DUCKURL'))
         elif 'csv' in db:
-            self.bot.load_database(db, dialect='csv')
+            self.bot.load_database(db)
 
     def introduction(self):
         for line in talk.introductions[self.bot.active_language]:
