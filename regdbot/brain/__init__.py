@@ -88,7 +88,7 @@ class RegDBot(Persona):
         if '```' in response:
             preamble = response.split('```sql')[0]
             query = response.split('```sql')[-1].split('```')[0]
-            explanation = response.split('```sql')[-1].split('```')[1]
+            explanation = response.split('```sql')[-1].split('```')[-1]
         else:
             preamble = ''
             query = response.strip()

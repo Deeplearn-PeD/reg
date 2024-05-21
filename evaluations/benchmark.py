@@ -33,9 +33,9 @@ class ApplyEvaluation:
 
 
 if __name__ == '__main__':
-    ae = ApplyEvaluation("duckdb://../data/dengue_clean.db", "dengue_clean.json")
+    ae = ApplyEvaluation("duckdb://../data/dengue_clean.db", "dengue_clean.json", model='gpt')
     ae.apply()
-    # ae2 = ApplyEvaluation(dburl="csv:../data/netflix_titles.csv", questions="netflix_titles.json", model='phi3')
-    # ae2.apply()
+    ae2 = ApplyEvaluation(dburl="csv:../data/netflix_titles.csv", questions="netflix_titles.json", model='gpt')
+    ae2.apply()
 
 
