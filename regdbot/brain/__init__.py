@@ -4,9 +4,6 @@ What it knows, how it learns,
 how it should interact with the user, and how it should respond to the user's requests.
 """
 from regdbot import Persona
-from openai import OpenAI
-from ollama import Client
-import ollama
 from base_agent.llminterface import LangModel
 from regdbot.brain import dbtools as dbt
 import dotenv

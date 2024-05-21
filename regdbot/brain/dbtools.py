@@ -2,7 +2,6 @@ from typing import List, Dict, Tuple, Any, Union
 import dotenv
 import os
 import re
-import ollama
 import loguru
 import duckdb
 import sqlalchemy
