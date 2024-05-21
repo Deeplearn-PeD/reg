@@ -8,14 +8,17 @@ from base_agent.voice import talk
 from regdbot.persona_prompts import sql_retrieval_augmented
 from base_agent import BasePersona
 import yaml
-cdir = os.getcwd()
-if 'regdbot' not in os.listdir(cdir):
-    os.chdir('..')
-config = yaml.load(open('regdbot/config.yml', 'r'), Loader=yaml.FullLoader)
-os.chdir(cdir)
 
 
-languages = ['pt_BR', 'en_US']
+def load_config():
+    current_dir = os.path.dirname(__file__)
+    config_file = os.path.join(current_dir, "config.yml")
+    with open(config_file, "r") as f:
+        return yaml.load(f, Loader=yaml.FullLoader)
+
+
+config = load_config()
+languages = ["pt_BR", "en_US"]
 
 
 class Persona(BasePersona):
