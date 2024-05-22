@@ -57,9 +57,9 @@ class Reggie:
 
     def _load_db(self, db):
         if 'postgresql' in db:
-            self.bot.load_database(os.getenv('PGURL'))
+            self.bot.load_database(db)
         elif 'duckdb' in db:
-            self.bot.load_database(os.getenv('DUCKURL'))
+            self.bot.load_database(db)
         elif 'csv' in db:
             self.bot.load_database(db)
 
