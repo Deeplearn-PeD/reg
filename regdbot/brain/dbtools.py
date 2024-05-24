@@ -2,6 +2,7 @@ from typing import List, Dict, Tuple, Any, Union
 import dotenv
 import os
 import re
+import sqlparse
 import loguru
 import duckdb
 import sqlalchemy
@@ -9,7 +10,6 @@ from sqlalchemy import create_engine, sql
 from regdbot.brain.utils import extract_code_from_markdown
 from base_agent.llminterface import LangModel
 from duckdb.duckdb import InvalidInputException
-
 
 dotenv.load_dotenv()
 logger = loguru.logger
@@ -25,7 +25,8 @@ class Database:
         self._tables = []
         self._views = []
         self.table_descriptions = {}
-        self.dialect = dburl.split(':')[0]#'duckdb' if 'duckdb' in self.url.lower() else 'postgresql' if 'postgresql' in self.url.lower() else 'csv'
+        self.dialect = dburl.split(':')[
+            0]  #'duckdb' if 'duckdb' in self.url.lower() else 'postgresql' if 'postgresql' in self.url.lower() else 'csv'
         self._connection = None
         self._tables = None
 
@@ -111,6 +112,7 @@ class Database:
         self.table_descriptions[table_name] = parsed_result
 
         return parsed_result
+
     def _count_non_null_rows(self, table_name: str) -> List[int:]:
         pass
 
@@ -128,7 +130,7 @@ class Database:
             result = self.connection.execute(query).fetchall()
         elif 'postgresql' in self.url:
             query = f"SELECT * FROM {table_name} LIMIT {num_rows};"
-            result = self.connection.execute(sql.text(query)) .fetchall()
+            result = self.connection.execute(sql.text(query)).fetchall()
         elif 'csv' in self.url:
             query = f"SELECT * FROM '{self.url.split(':')[1]}' LIMIT {num_rows};"
             return self.connection.execute(query).fetchall()
@@ -146,6 +148,7 @@ class Database:
         for n, column in enumerate(table_description):
             description += f"column name:{column[0]},  type:{column[1]}, sample values: {[r[n] for r in sample]}\n"
         return description
+
     def _create_semantic_view(self, table_name: str, view_name: str = None, duckdb_view: bool = False) -> None:
         """
         Creates a view in the database with semantic renaming of the columns for enhanced readability
@@ -157,13 +160,13 @@ class Database:
         table_description = self.get_table_description(table_name)
         # Prompt gemma model through ollama to generate SQL code with semantic naming for the view
         view_name = view_name if view_name else f"{table_name}_semanticview"
-        context = f"You will be asked to create SQL code in {self.dialect} dialect, to create a view with semantic "\
-        f"names for all the columns of a table. Be mindful of including only existing columns, as listed in the context. Do not use uppercase letters or spaces in the semantic column names."\
-        f"Don't use spaces, use underscores instead in variable names. Return pure and complete SQL clauses, which can be executed, without any accessory text."\
-        f"When you cannot propose a semantic name, maintain the original name\n"
-        prompt = f"Generate a view of table {table_name}, named {view_name}  "\
-        "renaming column names with semantic names "\
-        f"including the columns described bellow:\\n{table_description}"
+        context = f"You will be asked to create SQL code in {self.dialect} dialect, to create a view with semantic " \
+                  f"names for all the columns of a table. Be mindful of including only existing columns, as listed in the context. Do not use uppercase letters or spaces in the semantic column names." \
+                  f"Don't use spaces, use underscores instead in variable names. Return pure and complete SQL clauses, which can be executed, without any accessory text." \
+                  f"When you cannot propose a semantic name, maintain the original name\n"
+        prompt = f"Generate a view of table {table_name}, named {view_name}  " \
+                 "renaming column names with semantic names " \
+                 f"including the columns described bellow:\\n{table_description}"
         LM = LangModel(model='codellama')
 
         code = LM.get_response(question=prompt, context=context)
@@ -176,7 +179,7 @@ class Database:
         # print(column_descriptions)
         return column_descriptions
 
-    def check_query(self, query: str, table_name: str = None, debug_tries: int = 5) -> List[Tuple[str, Any]]:
+    def check_query(self, query: str, table_name: str = None, debug_tries: int = 5) -> str:
         """
         Run a query through the database connection, debugging it if necessary
         :param query: SQL query to run
@@ -194,18 +197,21 @@ class Database:
         tries = 0
         result = None
         while tries < debug_tries:
-            try:
-                if 'duckdb' in self.url:
-                    result = self.connection.execute(sqlcode)
-                elif 'postgresql' in self.url:
-                    result = self.connection.execute(sql.text(sqlcode))
+            if validate_sql(sqlcode):
+                try:
+                    if 'duckdb' in self.url:
+                        result = self.connection.execute(sqlcode)
+                    elif 'postgresql' in self.url:
+                        result = self.connection.execute(sql.text(sqlcode))
+                    break
+                except Exception as e:
+                    logger.error(f"{e} Error running query: {sqlcode[:100]},\n debugging the code")
+                    sqlcode = self.debug_query(sqlcode, table_name)
+                    sqlcode = extract_code_from_markdown(sqlcode)
+                    tries += 1
+            else:
+                logger.error(f"SQL syntax error in query: {sqlcode[:100]}")
                 break
-            except Exception as e:
-                logger.error(f"{e} Error running query: {sqlcode[:100]},\n debugging the code")
-                sqlcode = self.debug_query(sqlcode, table_name)
-                sqlcode = extract_code_from_markdown(sqlcode)
-                tries += 1
-
         return sqlcode
 
     def debug_query(self, query: str, table_name: str) -> List[Tuple[str, Any]]:
@@ -215,8 +221,9 @@ class Database:
         :return: result of the query
         """
         LM = LangModel(model='codellama')
-        question = (f"Given the following defective SQL query of table {table_name}, please fix its bugs and return a working version"\
-                    f"Return pure, complete SQL code without explanatory text:\n\n{query}")
+        question = (
+            f"Given the following defective SQL query of table {table_name}, please fix its bugs and return a working version" \
+            f"Return pure, complete SQL code without explanatory text:\n\n{query}")
         # print(self.table_descriptions[table_name])
         response = LM.get_response(question, self.table_descriptions[table_name])
         # response = self._clean_query_code(response)
@@ -268,6 +275,8 @@ class Database:
         except InvalidInputException as e:
             print(e)
             return []
+
+
 def get_duckdb_connection(url: str) -> object:
     """
     Returns a connection to a duckdb database
@@ -276,11 +285,9 @@ def get_duckdb_connection(url: str) -> object:
     """
     if url == 'duckdb:///:memory:':
         return duckdb.connect()
-    else: # for persistent databases
+    else:  # for persistent databases
         pth = url.split("://")[1]
         return duckdb.connect(pth)
-
-
 
 
 def get_csv_description(file_path: str) -> List[Tuple[str, Any]]:
@@ -293,3 +300,13 @@ def get_csv_description(file_path: str) -> List[Tuple[str, Any]]:
     query = f"DESCRIBE TABLE '{file_path}';"
     result = mdb.execute(query).fetchall()
     return result
+
+
+
+
+def validate_sql(query):
+    try:
+        sqlparse.parse(query)
+        return True
+    except sqlparse.exceptions.SQLParseError:
+        return False
