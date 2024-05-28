@@ -14,7 +14,7 @@ dotenv.load_dotenv()
 system_preamble = {'en_US': f"""
         Given an input question about data in a relational database table, 
         create a syntactically correct SQL query that will answer the question.
-        Format your answers in markdown, with any SQL code blocks enclosed in triple backticks.
+        Write your answers in Markdown, with any SQL code inside markdown code blocks.
         
         You can use the following tables in your query:
         
@@ -22,7 +22,7 @@ system_preamble = {'en_US': f"""
                    'pt_BR': f"""
         Dada uma pergunta de entrada sobre dados em uma tabela de um banco de dados relacional,
         crie uma consulta SQL sintaticamente correta que responderá à pergunta.
-        Formate suas respostas em markdown, com quaisquer blocos de código SQL delimitados por três crases.
+        Escreva suas respostas em Markdown, com quaisquer blocos de código SQL marcados como código.
         
         Você pode usar as seguintes tabelas em sua consulta:
         
