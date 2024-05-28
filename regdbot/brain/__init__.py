@@ -66,7 +66,7 @@ class RegDBot(Persona):
         if table is None:
             question_plus = question
         else:
-            question_plus = question + f"\nPlease take into acount this description of the table:\n {self.active_db.table_descriptions[table]}"
+            question_plus = question + f"\nPlease take into account this description of the table:\n {self.active_db.table_descriptions[table]}"
         response = self.get_response(question_plus)
         preamble, query, explanation = self._parse_response(response)
         if self.active_db is not None:
@@ -80,16 +80,11 @@ class RegDBot(Persona):
         Parse the response from the language model  into preamble, query, and explanation
         trying to detect when there is a mix of code and text in the response.
         :param response: Raw llm response
-        :return:
+        :return: tuple of preamble, query, explanation
         """
-        if '```' in response:
-            preamble = response.split('```sql')[0]
-            query = response.split('```sql')[-1].split('```')[0]
-            explanation = response.split('```sql')[-1].split('```')[-1]
-        else:
-            preamble = ''
-            query = response.strip()
-            explanation = ''
+        parts = response.split('```sql')
+        preamble = parts[0] if len(parts) > 1 else ''
+        query, explanation = parts[1].split('```') if len(parts) > 1 else (response.strip(), '')
         return preamble, query, explanation
 
     def get_response(self, question):

@@ -13,6 +13,8 @@ models:
     code: "gemma"
   Llama3-Gradient:
     code: "llama3-gradient"
+  ChatGPT:
+    code: "gpt-4o"
 
 codegen_models:
   CodeLlama:

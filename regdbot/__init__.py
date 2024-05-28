@@ -22,7 +22,7 @@ languages = ["pt_BR", "en_US"]
 
 
 class Persona(BasePersona):
-    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4-0125-preview'):
+    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4o'):
         super().__init__(name=name, model=model, languages=languages)
         self.name = name
         self.languages = languages
