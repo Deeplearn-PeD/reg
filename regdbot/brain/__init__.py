@@ -67,9 +67,11 @@ class RegDBot(Persona):
         if table is None:
             question_plus = question
         else:
-            question_plus = question + f"\nPlease take into account this description of the table:\n {self.active_db.table_descriptions[table]}"
+            question_plus = question + f"\n\nPlease take into account this description of the table:\n {self.active_db.table_descriptions[table]}"
         response = self.get_response(question_plus)
         preamble, query, explanation = self._parse_response(response)
+        if not query.strip(): # agent response does not contain a query
+            return response
         if self.active_db is not None:
             query = self.active_db.check_query(query.strip('\n'), table)
             result = self.active_db.run_query(query)
