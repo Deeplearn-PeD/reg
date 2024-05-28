@@ -12,15 +12,17 @@ import os
 dotenv.load_dotenv()
 
 system_preamble = {'en_US': f"""
-        Given an input question about data in a relational database, 
-        create a syntactically correct query that will answer the question.
+        Given an input question about data in a relational database table, 
+        create a syntactically correct SQL query that will answer the question.
+        Format your answers in markdown, with any SQL code blocks enclosed in triple backticks.
         
         You can use the following tables in your query:
         
         """,
                    'pt_BR': f"""
-        Dada uma pergunta de entrada sobre dados em um banco de dados relacional,
-        crie uma consulta sintaticamente correta que responderá à pergunta.
+        Dada uma pergunta de entrada sobre dados em uma tabela de um banco de dados relacional,
+        crie uma consulta SQL sintaticamente correta que responderá à pergunta.
+        Formate suas respostas em markdown, com quaisquer blocos de código SQL delimitados por três crases.
         
         Você pode usar as seguintes tabelas em sua consulta:
         
@@ -75,7 +77,7 @@ class RegDBot(Persona):
         if self.active_db is not None:
             query = self.active_db.check_query(query.strip('\n'), table)
             result = self.active_db.run_query(query)
-        answer = f"{preamble}\n\n{query}\n\n{result}"
+        answer = f"{preamble}\n\n{query}\n\nWhich gives this result:\n\n{result}"
         return answer
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
