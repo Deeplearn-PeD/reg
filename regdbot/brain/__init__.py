@@ -34,6 +34,7 @@ class RegDBot(Persona):
         self.llm = LangModel(model=model)
         self.context_prompt: str = system_preamble[self.active_language]
         self.active_db = None
+        self.last_response = {}
 
     def load_database(self, dburl: str):
         """
@@ -85,6 +86,7 @@ class RegDBot(Persona):
         parts = response.split('```sql')
         preamble = parts[0] if len(parts) > 1 else ''
         query, explanation = parts[1].split('```') if len(parts) > 1 else (response.strip(), '')
+        self.last_response = {'preamble': preamble, 'query': query, 'explanation': explanation}
         return preamble, query, explanation
 
     def get_response(self, question):
