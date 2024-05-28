@@ -86,8 +86,12 @@ class RegDBot(Persona):
         :return: tuple of preamble, query, explanation
         """
         parts = response.split('```sql')
-        preamble = parts[0] if len(parts) > 1 else ''
-        query, explanation = parts[1].split('```') if len(parts) > 1 else (response.strip(), '')
+        if len(parts) > 1:
+            preamble = parts[0]
+            query, explanation = parts[1].split('```')
+        else: # no code block in response
+            preamble = response
+            query, explanation = ('', '')
         self.last_response = {'preamble': preamble, 'query': query, 'explanation': explanation}
         return preamble, query, explanation
 
