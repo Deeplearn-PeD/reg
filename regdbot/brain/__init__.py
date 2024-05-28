@@ -87,15 +87,19 @@ class RegDBot(Persona):
         :param response: Raw llm response
         :return: tuple of preamble, query, explanation
         """
-        parts = response.split('```sql')
+
+        parts = response.split('```sql') if '```sql' in response else response.split('```') if '```sql' in response else response.split('`')
         if len(parts) > 1:
             preamble = parts[0]
-            query, explanation = parts[1].split('```')
+            if len(parts) > 2:
+                query, explanation = parts[1],parts[2]
+            else:
+                query, explanation = parts[1].split('```')
         else: # no code block in response
             preamble = response
             query, explanation = ('', '')
-        self.last_response = {'preamble': preamble, 'query': query, 'explanation': explanation}
-        return preamble, query, explanation
+        self.last_response = {'preamble': preamble, 'query': query.strip(), 'explanation': explanation}
+        return preamble, query.strip(), explanation
 
     def get_response(self, question):
         response = self.llm.get_response(question=question, context=self.context_prompt)
