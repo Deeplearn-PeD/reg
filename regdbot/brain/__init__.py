@@ -44,7 +44,7 @@ class RegDBot(Persona):
         :param dburl: URL for the database connection
         :param dialect: kind of SQL dialect to use
         """
-        self.active_db = dbt.Database(dburl)
+        self.active_db = dbt.Database(dburl, self.llm)
         for tbl in self.active_db.tables:
             self.active_db.get_table_description(tbl)
         self.context_prompt += f"\nYou are analyzing a {self.active_db.dialect} database\n{system_preamble[self.active_language]}.\n{self.active_db.tables}"

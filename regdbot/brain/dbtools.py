@@ -8,7 +8,6 @@ import duckdb
 import sqlalchemy
 from sqlalchemy import create_engine, sql
 from regdbot.brain.utils import extract_code_from_markdown
-from base_agent.llminterface import LangModel
 from duckdb.duckdb import InvalidInputException
 
 dotenv.load_dotenv()
@@ -16,12 +15,14 @@ logger = loguru.logger
 
 
 class Database:
-    def __init__(self, dburl) -> None:
+    def __init__(self, dburl: str, llm: object) -> None:
         """
         Configure database connection for prompt generation
         :param dburl: any standard database url or csv:mycsv.csv for csv files
+        :param llm: language model object
         """
         self.url = dburl
+        self.llm = llm
         self._tables = []
         self._views = []
         self.table_descriptions = {}
@@ -168,9 +169,9 @@ class Database:
         prompt = f"Generate a view of table {table_name}, named {view_name}  " \
                  "renaming column names with semantic names " \
                  f"including the columns described bellow:\\n{table_description}"
-        LM = LangModel(model='codellama')
 
-        code = LM.get_response(question=prompt, context=context)
+
+        code = self.llm.get_response(question=prompt, context=context)
         code = self.check_query(code, table_name)
         # parse the response to get the column descriptions
         column_descriptions = {}
@@ -221,12 +222,12 @@ class Database:
         :param query: SQL query to run
         :return: result of the query
         """
-        LM = LangModel(model='codellama')
+
         question = (
             f"Given the following defective SQL query of table {table_name}, please fix its bugs and return a working version" \
             f"Return pure, complete SQL code without explanatory text:\n\n{query}")
         # print(self.table_descriptions[table_name])
-        response = LM.get_response(question, self.table_descriptions[table_name])
+        response = self.llm.get_response(question, self.table_descriptions[table_name])
         # response = self._clean_query_code(response)
         clean_response = extract_code_from_markdown(response)
         new_code = clean_response if isinstance(clean_response, str) else clean_response['response']
