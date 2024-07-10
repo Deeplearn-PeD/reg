@@ -13,7 +13,7 @@ dotenv.load_dotenv()
 
 
 class Reggie:
-    def __init__(self, model='gemma', language: str = config["languages"]["English"]["code"]):
+    def __init__(self, model='codellama', language: str = config["languages"]["English"]["code"]):
         self.bot = RegDBot(model=model)
         self.bot.set_language(language)
 

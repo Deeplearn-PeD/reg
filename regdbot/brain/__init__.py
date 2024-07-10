@@ -12,26 +12,28 @@ import os
 dotenv.load_dotenv()
 
 system_preamble = {'en_US': f"""
+        You are a database engineer. When asked a question about a database, 
+        you should provide a SQL query that answers the question. do not provide 
+        answers that are not based on the database specified
         Given an input question about data in a relational database table, 
         create a syntactically correct SQL query that will answer the question.
         Write your answers in Markdown, with any SQL code inside markdown code blocks.
-        
-        You can use the following tables in your query:
-        
+
         """,
                    'pt_BR': f"""
+        Você é um engenheiro de banco de dados. Quando perguntado sobre um banco de dados, 
+        você deve fornecer uma consulta SQL que responda à pergunta. Não forneça
+        respostas que não se baseiem no banco de dados especificado.
         Dada uma pergunta de entrada sobre dados em uma tabela de um banco de dados relacional,
         crie uma consulta SQL sintaticamente correta que responderá à pergunta.
         Escreva suas respostas em Markdown, com quaisquer blocos de código SQL marcados como código.
-        
-        Você pode usar as seguintes tabelas em sua consulta:
         
         """
                    }
 
 
 class RegDBot(Persona):
-    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4-0125-preview'):
+    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4o'):
         super().__init__(name=name, model=model)
         self.llm = LangModel(model=model)
         self.context_prompt: str = system_preamble[self.active_language]
