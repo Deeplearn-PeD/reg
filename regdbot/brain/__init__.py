@@ -55,8 +55,15 @@ class RegDBot(Persona):
     def context(self):
         return self.context_prompt
 
-    def set_context(self, context: str) -> None:
-        self.context_prompt = context
+    def set_context(self, context: str=None) -> None:
+        """
+        Set the context for the bot's response
+        :param context: text
+        """
+        if context is None:
+            self.context_prompt = system_preamble[self.active_language]
+        else:
+            self.context_prompt = context
 
     def set_prompt(self, prompt_template):
         self.prompt_template = prompt_template
@@ -79,7 +86,8 @@ class RegDBot(Persona):
         if self.active_db is not None:
             query = self.active_db.check_query(query.strip('\n'), table)
             result = self.active_db.run_query(query)
-        answer = f"{preamble}\n\n```sql\n{query}\n```\n\nWhich gives this result:\n\n{result}"
+            pretty_result = self._prettify_results(table, query, result)
+        answer = f"{preamble}\n\n```sql\n{query}\n```\n\nWhich gives this result:\n\n{pretty_result}\n\n{explanation}"
         return answer
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
@@ -106,6 +114,23 @@ class RegDBot(Persona):
     def get_response(self, question):
         response = self.llm.get_response(question=question, context=self.context_prompt)
         return response
+
+    def _prettify_results(self, table: str, query: str, results: str):
+        """
+        Ask LLM to teke the return value of a query and format it maximizing user readability
+        :param table: table name
+        :param query: SQL query
+        :param results: results of the query
+        """
+        self.set_context(f"""
+You are a helpful data analyst. Given the output of a query on a table named {table}, you should reformat the output below to make it more readable.
+
+{results} 
+        """)
+        response = self.ask(f"The query below and its results are not very readable. Please reformat the results to make them more user-friendly as a markdown text.\n\nQuery:\n{query}\n\nResults:\n{results}")
+        self.set_context()
+        return response
+
 
     def get_prompt(self):
         return self.context_prompt
