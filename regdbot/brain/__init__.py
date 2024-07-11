@@ -86,8 +86,9 @@ class RegDBot(Persona):
         if self.active_db is not None:
             query = self.active_db.check_query(query.strip('\n'), table)
             result = self.active_db.run_query(query)
-            pretty_result = self._prettify_results(table, query, result)
-        answer = f"{preamble}\n\n```sql\n{query}\n```\n\nWhich gives this result:\n\n{pretty_result}\n\n{explanation}"
+            if len(result):
+                result = self._prettify_results(table, query, result)
+        answer = f"{preamble}\n\n```sql\n{query}\n```\n\nWhich gives this result:\n\n{result}\n\n{explanation}"
         return answer
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
