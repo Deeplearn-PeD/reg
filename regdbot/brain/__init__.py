@@ -128,7 +128,7 @@ You are a helpful data analyst. Given the output of a query on a table named {ta
 
 {results} 
         """)
-        response = self.ask(f"The query below and its results are not very readable. Please reformat the results to make them more user-friendly as a markdown text.\n\nQuery:\n{query}\n\nResults:\n{results}")
+        response = self.get_response(f"The query below and its results are not very readable. Please reformat the results to make them more user-friendly as a markdown text.\n\nQuery:\n{query}\n\nResults:\n{results}")
         self.set_context()
         return response
 
