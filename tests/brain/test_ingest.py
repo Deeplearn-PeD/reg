@@ -1,5 +1,5 @@
 import unittest
-
+import os
 import pandas as pd
 from deltalake import DeltaTable
 from pandas.testing import assert_frame_equal
@@ -33,17 +33,22 @@ class CSVIngestorTests(unittest.TestCase):
 
         self.assertIsInstance(dl, DeltaTable)
 
-    def test_ingestor_initializes_without_ingesting(self):
-        # Given/When
-        ingestor = CSVIngestor(self.test_file_path)
-
-        # Then
-        self.assertIsNone(ingestor.data)
 
     def test_raises_exception_when_csv_file_not_found(self):
         # Given
-        ingestor = CSVIngestor('nonexistent.csv')
-
-        # When/Then
         with self.assertRaises(FileNotFoundError):
-            ingestor.ingest()
+            ingestor = CSVIngestor('nonexistent.csv')
+
+
+
+
+
+    def test_ingest_and_write_to_database(self):
+        # When
+        dl = self.ingestor.to_delta(self.test_output_path)
+        self.ingestor.to_database('duckdb:///tmp/doaj.db')
+
+        # Then
+        self.assertIsInstance(dl, DeltaTable)
+        self.assertTrue(len(dl.history()) > 0)
+        self.assertTrue(os.path.exists('/tmp/doaj.db'))
