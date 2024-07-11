@@ -79,6 +79,7 @@ class CSVIngestor:
         else:
             engine = create_engine(dburl)
             conn = engine.connect()
+            self.data.to_sql(self.table_name, conn, if_exists='replace', index=False)
         conn.commit()
 
         conn.close()
