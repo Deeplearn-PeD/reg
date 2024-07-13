@@ -1,10 +1,18 @@
 """
 This module contains functions for analyzing data from the database.
 """
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from sqlalchemy import create_engine
+
+try:
+    __IPYTHON__
+    _not_in_ipython = False
+except NameError:
+    _not_in_ipython = True
+    matplotlib.use("svg")
 
 
 def get_data_from_db(table_name, connection_string):
@@ -63,10 +71,12 @@ class EDA:
         """
         Plot the correlation matrix of the numerical columns.
         """
+        fig, ax = plt.subplots()
         corr_matrix = self.df_filtered[self.numerical_columns].dropna().corr()
-        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", linewidths=.5)
+        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", linewidths=.5, ax=ax)
         plt.title("Correlation Heatmap")
-        plt.show()
+        if _not_in_ipython:
+            return fig
 
     def show_categorical(self, column):
         """
