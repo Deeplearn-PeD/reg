@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 import os
 import duckdb
@@ -46,6 +47,18 @@ def test_database_connection_with_duckdb_url():
     db = dbt.Database('duckdb:///:memory:',lang_model)
     assert isinstance(db.connection, duckdb.DuckDBPyConnection)
 
+def test_get_table_df_from_csv():
+    lang_model = LangModel('llama3')
+    db = dbt.Database('csv:brain/fixtures/Star_Trek_Season_1.csv', lang_model)
+    result = db.get_table_df('startrek_table')
+    assert result.shape == (30, 18)
+    assert isinstance(result, pd.DataFrame)
 
 
+def test_get_table_df_from_duckdb():
+    lang_model = LangModel('llama3')
+    db = dbt.Database('duckdb://brain/fixtures/doaj.db', lang_model)
+    result = db.get_table_df('journalcsv__doaj_20240710')
+    assert result.shape == (20622, 54)
+    assert isinstance(result, pd.DataFrame)
 

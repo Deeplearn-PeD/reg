@@ -6,6 +6,7 @@ import sqlparse
 import loguru
 import duckdb
 import sqlalchemy
+import pandas as pd
 from sqlalchemy import create_engine, sql
 from regdbot.brain.utils import extract_code_from_markdown
 from duckdb.duckdb import InvalidInputException
@@ -277,6 +278,25 @@ class Database:
         except InvalidInputException as e:
             print(e)
             return []
+
+    def get_table_df(self, table_name: str) -> object:
+        """
+        Returns a pandas dataframe from the table
+        :param table_name: name of the table
+        :return: pandas dataframe
+        """
+        if 'duckdb' in self.url:
+            query = f"SELECT * FROM {table_name};"
+            result = self.connection.execute(query).df()
+            return result
+        elif 'postgresql' in self.url:
+            query = f"SELECT * FROM {table_name};"
+            df = pd.read_sql_query(query, self.connection)
+            return df
+        elif 'csv' in self.url:
+            query = f"SELECT * FROM '{self.url.split(':')[1]}';"
+            return self.connection.execute(query).df()
+
 
 
 def get_duckdb_connection(url: str) -> object:
