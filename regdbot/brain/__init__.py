@@ -124,12 +124,12 @@ class RegDBot(Persona):
         :param results: results of the query
         """
         self.set_context(f"""
-You are a helpful data analyst. Given the output of a query on a table named {table}, you should reformat the output below to make it more readable. Frequently by putting the results into a table or a list.
-Make sure to include the results in their entirety in the you formatted response.
+You are a helpful data analyst. Given the output of a query on a table named {table}, you should reformat the output given by putting the full results into a table or a list.
+Make sure to include the results in their entirety in the formatted response.
 
 {results} 
         """)
-        response = self.get_response(f"The query below and its results are not very readable. Please reformat the results to make them more user-friendly as a markdown text.\n\nQuery:\n{query}\n\nResults:\n{results}")
+        response = self.get_response(f"The query below and its results are not very readable. Please reformat the results as a markdown table or list.\n\nQuery:\n{query}\n\nResults:\n{results}")
         self.set_context()
         if 'Results:' in response:
             response = response.split('Results:')[1]
