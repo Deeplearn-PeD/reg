@@ -79,10 +79,12 @@ class EDA:
         if _not_in_ipython:
             return fig
 
-    def show_categorical(self, column):
+    def show_categorical(self, column=None):
         """
         Describe the categorical columns in the data.
         """
+        if column is None:
+            column = self.categorical_columns[0]
         try:
             counts = pd.merge(left=self.df_filtered[column].value_counts(),
                               right=self.df_filtered[column].value_counts(normalize=True) * 100,
