@@ -38,14 +38,15 @@ class EDA:
         self.df = df
         self.df_filtered = None  # Filtered DataFrame with mostly null columns removed
         self.mostly_null_cols = self._filter_mostly_null(filter_mostly_null)
-        self.description = self._describe()
         self._perform_eda()
 
     def count_nulls(self):
         """
         Count the number of null values in each column.
         """
-        return self.df.isnull().sum()
+        nc = self.df.isnull().sum().sort_values(ascending=False)
+        nc.name = "null_count"
+        return nc
 
     def _filter_mostly_null(self, threshold: float = 0.9) -> list:
         """
@@ -61,7 +62,7 @@ class EDA:
         self.df_filtered = self.df.drop(columns=mostly_null_cols)
         return mostly_null_cols
 
-    def _describe(self, include='all'):
+    def describe(self, include=None):
         """
         Generate a description of the data.
         """
@@ -91,8 +92,25 @@ class EDA:
             return f"{column} is not a categorical column."
         except KeyError:
             return f"{column} not found in the DataFrame"
-        return counts
+        return counts.sort_values(by="proportion", ascending=False)
 
+    def plot_categorical(self, column, topn=10):
+        """
+        Plot the categorical data.
+        """
+        try:
+            assert column in self.categorical_columns
+        except AssertionError:
+            return f"{column} is not a categorical column."
+        except KeyError:
+            return f"{column} not found in the DataFrame"
+        cats = self.show_categorical(column)
+        cats_top = cats.iloc[:topn]
+
+        fig, ax = plt.subplots()
+        cats_top.proportion.plot(kind='bar', ax=ax)
+        if _not_in_ipython:
+            return fig
     def _perform_eda(self, plots=False):
         """
         Perform exploratory data analysis on the fetched data.
