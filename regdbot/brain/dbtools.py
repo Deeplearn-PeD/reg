@@ -182,7 +182,7 @@ class Database:
         # print(column_descriptions)
         return column_descriptions
 
-    def check_query(self, query: str, table_name: str = None, debug_tries: int = 5) -> str:
+    def check_query(self, query: str, table_name: str = None, debug_tries: int = 10) -> str:
         """
         Run a query through the database connection, debugging it if necessary
         :param query: SQL query to run

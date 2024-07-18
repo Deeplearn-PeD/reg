@@ -49,7 +49,7 @@ class RegDBot(Persona):
         self.active_db = dbt.Database(dburl, self.llm)
         for tbl in self.active_db.tables:
             self.active_db.get_table_description(tbl)
-        self.context_prompt += f"\nYou are analyzing a {self.active_db.dialect} database\n{system_preamble[self.active_language]}.\n{self.active_db.tables}"
+        self.context_prompt += f"\nYou are analyzing a {self.active_db.dialect} database\n\n{system_preamble[self.active_language]}.\n\n The database you will analize contains the following tables: {self.active_db.tables}"
 
     @property
     def context(self):
@@ -78,7 +78,7 @@ class RegDBot(Persona):
         if table is None:
             question_plus = question
         else:
-            question_plus = question + f"\n\nPlease take into account this description of the table:\n {self.active_db.table_descriptions[table]}"
+            question_plus = question + f"\n\nPlease take into account this description of the table {table}:\n {self.active_db.table_descriptions[table]}"
         response = self.get_response(question_plus)
         preamble, query, explanation = self._parse_response(response)
         if not query.strip(): # agent response does not contain a query
@@ -88,7 +88,7 @@ class RegDBot(Persona):
             result = self.active_db.run_query(query)
             if len(result):
                 result = self._prettify_results(table, query, result)
-        answer = f"{preamble}\n\n```sql\n{query}\n```\n\nWhich gives this result:\n\n{result}\n\n{explanation}"
+        answer = f"{preamble}\n\n```sql\n{query}\n```\n\n{result}\n\n{explanation}"
         return answer
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
