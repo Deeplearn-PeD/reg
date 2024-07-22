@@ -126,7 +126,11 @@ class RegDBot(Persona):
         :param keys: list of column names
         :return: markdown table
         """
-        return tabulate(results, headers=keys, tablefmt='github')
+        if len(results) > 10:
+            truncated = True
+            results = results[:10]
+        tabbed = tabulate(results, headers=keys, tablefmt='github')
+        return tabbed+("\n First 10 lines of results" if truncated else "")
 
     def _prettify_results(self, table: str, query: str, results: str):
         """
