@@ -129,6 +129,8 @@ class RegDBot(Persona):
         if len(results) > 10:
             truncated = True
             results = results[:10]
+        else:
+            truncated = False
         tabbed = tabulate(results, headers=keys, tablefmt='github')
         return tabbed+("\n First 10 lines of results" if truncated else "")
 
