@@ -62,3 +62,8 @@ def test_get_table_df_from_duckdb():
     assert result.shape == (20622, 54)
     assert isinstance(result, pd.DataFrame)
 
+def test_get_keys():
+    lang_model = LangModel('llama3')
+    db = dbt.Database('duckdb://brain/fixtures/doaj.db', lang_model)
+    result, keys = db.run_query('SELECT * FROM journalcsv__doaj_20240710 LIMIT 5')
+    assert keys[0] == 'Journal title'

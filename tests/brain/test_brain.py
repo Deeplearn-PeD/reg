@@ -40,5 +40,14 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result[0],'Here is some Python code:\n\n ', 'Preamble should be the text before the code block')
         self.assertEqual(result[1],'print(\'Hello, World!\')','Query should be the code block')
         self.assertEqual(result[2]," Did you know that this code will print 'Hello, World!'?",'Explanation should be the text after the code block')
+
+    def test_tabulate_response(self):
+        rdb = brain.RegDBot()
+        results = [('a',1),('b',2),('c',3)]
+        keys = ['letter','number']
+        table = rdb.tabulate(results, keys)
+        assert table.startswith('| letter')
+        assert table.endswith('3 |')
+
 if __name__ == '__main__':
     unittest.main()

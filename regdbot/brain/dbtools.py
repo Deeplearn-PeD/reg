@@ -268,14 +268,17 @@ class Database:
         else:
             raise TypeError("Query must be a string")
         if 'duckdb' in self.url:
+            db = 'duckdb'
             result = self.connection.execute(sqlcode)
         elif 'postgresql' in self.url:
+            db = 'postgresql'
             result = self.connection.execute(sql.text(sqlcode))
         elif 'csv' in self.url:
+            db = 'csv'
             result = self.connection.execute(sqlcode)
         # print(sqlcode)
         try:
-            return result.fetchall(), result.keys()
+            return result.fetchall(), [d[0] for d in result.description] if db in ('duckdb','csv') else result.keys()
         except InvalidInputException as e:
             print(e)
             return [], []
