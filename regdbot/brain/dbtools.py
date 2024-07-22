@@ -7,6 +7,7 @@ import loguru
 import duckdb
 import sqlalchemy
 import pandas as pd
+from tabulate import tabulate
 from sqlalchemy import create_engine, sql
 from regdbot.brain.utils import extract_code_from_markdown
 from duckdb.duckdb import InvalidInputException
@@ -256,7 +257,7 @@ class Database:
 
         return sql_code
 
-    def run_query(self, query: str) -> List[Tuple[str, Any]]:
+    def run_query(self, query: str) -> Tuple[List[Tuple[str, Any]], List[str]]:
         """
         Run a query through the database connection
         :param query: SQL query to run
@@ -274,10 +275,10 @@ class Database:
             result = self.connection.execute(sqlcode)
         # print(sqlcode)
         try:
-            return result.fetchall()
+            return result.fetchall(), result.keys()
         except InvalidInputException as e:
             print(e)
-            return []
+            return [], []
 
     def get_table_df(self, table_name: str) -> object:
         """

@@ -3,6 +3,8 @@ in This package we define the Bot's Brain, i.e. its professional profile.
 What it knows, how it learns,
 how it should interact with the user, and how it should respond to the user's requests.
 """
+from typing import List, Tuple, Any
+from tabulate import tabulate
 from regdbot import Persona
 from base_agent.llminterface import LangModel
 from regdbot.brain import dbtools as dbt
@@ -85,9 +87,10 @@ class RegDBot(Persona):
             return response
         if self.active_db is not None:
             query = self.active_db.check_query(query.strip('\n'), table)
-            result = self.active_db.run_query(query)
+            result, keys = self.active_db.run_query(query)
             if len(result):
-                result = self._prettify_results(table, query, result)
+                # result = self._prettify_results(table, query, result)
+                result = self.tabulate(result, keys)
         answer = f"{preamble}\n\n```sql\n{query}\n```\n\n{result}\n\n{explanation}"
         return answer
 
@@ -115,6 +118,15 @@ class RegDBot(Persona):
     def get_response(self, question):
         response = self.llm.get_response(question=question, context=self.context_prompt)
         return response
+
+    def tabulate(self, results: List[Tuple[str,Any]], keys: List[str])->str:
+        """
+        Format the results of a query as a markdown table
+        :param results: list of tuples with the results
+        :param keys: list of column names
+        :return: markdown table
+        """
+        return tabulate(results, headers=keys, tablefmt='github')
 
     def _prettify_results(self, table: str, query: str, results: str):
         """
