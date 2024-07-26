@@ -108,7 +108,11 @@ class RegDBot(Persona):
             if len(parts) > 2:
                 query, explanation = parts[1],parts[2]
             else:
-                query, explanation = parts[1].split('```')
+                if '```' in parts[1]:
+                    query, explanation = parts[1].split('```')
+                else:
+                    query = ""
+                    explanation = parts[1]
         else: # no code block in response
             preamble = response
             query, explanation = ('', '')
