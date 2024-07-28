@@ -8,6 +8,7 @@ from tabulate import tabulate
 from regdbot import Persona
 from base_agent.llminterface import LangModel
 from regdbot.brain import dbtools as dbt
+from regdbot.brain.memory import History
 import dotenv
 import os
 
@@ -41,6 +42,7 @@ class RegDBot(Persona):
         self.context_prompt: str = system_preamble[self.active_language]
         self.active_db = None
         self.last_response = {}
+        self.chat_history = History('sqlite://')
 
     def load_database(self, dburl: str):
         """
@@ -92,6 +94,7 @@ class RegDBot(Persona):
                 # result = self._prettify_results(table, query, result)
                 result = self.tabulate(result, keys)
         answer = f"{preamble}\n\n```sql\n{query}\n```\n\n{result}\n\n{explanation}"
+        self.chat_history.memorize(1, question=question, answer=answer, code=query, explanation=explanation, context=self.context)S
         return answer
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:

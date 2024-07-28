@@ -4,7 +4,7 @@ import datetime
 class Problem(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     timestamp: datetime.datetime = Field(default_factory=datetime.datetime.now, index=True)
-    session_id: int = Field(primary_key=True, default=None)
+    session_id: int = Field()
     question: str = Field()
     context: str = Field()
     code: str = Field()
@@ -25,7 +25,7 @@ class History:
         SQLModel.metadata.create_all(engine)
         return engine
 
-    def memorize(self, session_id: int, question: str, code: str, explanation: str, context: str):
+    def memorize(self, session_id: int, question: str, code: str, explanation: str, context: str)->Problem:
         """
         Persist a chat in the database
         :param session_id: id of the chat session
@@ -40,7 +40,7 @@ class History:
             session.add(memory)
             session.commit()
             session.refresh(memory)
-            return memory
+        return memory
 
     def recall(self, session_id, since: datetime.datetime = None):
         with Session(self.engine) as session:
@@ -48,5 +48,5 @@ class History:
                 stmt = select(Problem).where(Problem.session_id == session_id).where(Problem.timestamp >= since)
             else:
                 stmt = select(Problem).where(Problem.session_id == session_id)
-            results = session.exec(stmt)
-            return results
+            results = session.exec(stmt).fetchall()
+        return results
