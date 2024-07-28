@@ -46,7 +46,9 @@ class CSVIngestorTests(unittest.TestCase):
     def test_ingest_and_write_to_database(self):
         # When
         dl = self.ingestor.to_delta(self.test_output_path)
-        self.ingestor.to_database('duckdb:///tmp/doaj.db')
+        if os.path.exists(self.test_output_path+'.db'):
+            os.remove(self.test_output_path+'.db')
+        self.ingestor.to_database(f'duckdb://{self.test_output_path}.db')
 
         # Then
         self.assertIsInstance(dl, DeltaTable)

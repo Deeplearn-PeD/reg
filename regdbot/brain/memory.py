@@ -4,7 +4,7 @@ import datetime
 class Problem(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     timestamp: datetime.datetime = Field(default_factory=datetime.datetime.now, index=True)
-    session_id: int = Field()
+    session_id: str = Field() #md5 hash of the session
     question: str = Field()
     context: str = Field()
     code: str = Field()

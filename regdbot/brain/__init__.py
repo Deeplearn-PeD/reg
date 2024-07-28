@@ -10,6 +10,8 @@ from base_agent.llminterface import LangModel
 from regdbot.brain import dbtools as dbt
 from regdbot.brain.memory import History
 import dotenv
+import datetime
+import hashlib
 import os
 
 dotenv.load_dotenv()
@@ -42,6 +44,8 @@ class RegDBot(Persona):
         self.context_prompt: str = system_preamble[self.active_language]
         self.active_db = None
         self.last_response = {}
+        # session_id is a hash for the current instance of the bot, comining a timestamp, name, and model name
+        self.session_id = hashlib.md5(f"{datetime.datetime.now()}{self.name}{self.model}".encode()).hexdigest()
         self.chat_history = History('sqlite://')
 
     def load_database(self, dburl: str):
@@ -94,7 +98,7 @@ class RegDBot(Persona):
                 # result = self._prettify_results(table, query, result)
                 result = self.tabulate(result, keys)
         answer = f"{preamble}\n\n```sql\n{query}\n```\n\n{result}\n\n{explanation}"
-        self.chat_history.memorize(1, question=question, answer=answer, code=query, explanation=explanation, context=self.context)
+        self.chat_history.memorize(self.session_id, question=question, code=query, explanation=explanation, context=self.context)
         return answer
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
