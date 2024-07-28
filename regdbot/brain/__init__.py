@@ -94,7 +94,7 @@ class RegDBot(Persona):
                 # result = self._prettify_results(table, query, result)
                 result = self.tabulate(result, keys)
         answer = f"{preamble}\n\n```sql\n{query}\n```\n\n{result}\n\n{explanation}"
-        self.chat_history.memorize(1, question=question, answer=answer, code=query, explanation=explanation, context=self.context)S
+        self.chat_history.memorize(1, question=question, answer=answer, code=query, explanation=explanation, context=self.context)
         return answer
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
