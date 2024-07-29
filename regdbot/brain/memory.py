@@ -16,17 +16,17 @@ class Problem(SQLModel, table=True):
 
 class History:
     def __init__(self, dburl: str = "sqlite://"):
-        self.engine = self._setup_db(dburl)
+        self.engine = None
+        self._setup_db(dburl)
 
-    def _setup_db(self, dburl: str)->object:
+    def _setup_db(self, dburl: str)->None:
         """
         Setup the database
         :param dburl: database url
         :return:
         """
-        engine = create_engine(dburl)
-        SQLModel.metadata.create_all(engine)
-        return engine
+        self.engine = create_engine(dburl)
+        SQLModel.metadata.create_all(self.engine)
 
     def memorize(self, session_id: int, question: str, code: str, explanation: str, context: str)->Problem:
         """
