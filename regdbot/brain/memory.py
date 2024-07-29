@@ -1,5 +1,8 @@
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 import datetime
+import loguru
+
+logger = loguru.get_logger()
 
 class Problem(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
@@ -12,10 +15,10 @@ class Problem(SQLModel, table=True):
 
 
 class History:
-    def __init__(self, dburl: str = "sqlite:///memory.db"):
-        self.engine = self.setup_db(dburl)
+    def __init__(self, dburl: str = "sqlite://"):
+        self.engine = self._setup_db(dburl)
 
-    def setup_db(self, dburl: str):
+    def _setup_db(self, dburl: str)->object:
         """
         Setup the database
         :param dburl: database url
