@@ -38,7 +38,7 @@ system_preamble = {'en_US': f"""
 
 
 class RegDBot(Persona):
-    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4o'):
+    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4o', memory_db_url: str = 'sqlite:///:memory:'):
         super().__init__(name=name, model=model)
         self.llm = LangModel(model=model)
         self.context_prompt: str = system_preamble[self.active_language]
@@ -46,7 +46,7 @@ class RegDBot(Persona):
         self.last_response = {}
         # session_id is a hash for the current instance of the bot, comining a timestamp, name, and model name
         self.session_id = hashlib.md5(f"{datetime.datetime.now()}{self.name}{self.model}".encode()).hexdigest()
-        self.chat_history = History('sqlite:///memory.sqlite')
+        self.chat_history = History(memory_db_url)
 
     def load_database(self, dburl: str):
         """
