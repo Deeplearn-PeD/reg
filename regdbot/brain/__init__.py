@@ -8,7 +8,7 @@ from tabulate import tabulate
 from regdbot import Persona
 from base_agent.llminterface import LangModel
 from regdbot.brain import dbtools as dbt
-from regdbot.brain.memory import History
+from regdbot.brain.memory import History, Problem
 import dotenv
 import datetime
 import hashlib
