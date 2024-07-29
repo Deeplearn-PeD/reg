@@ -46,7 +46,7 @@ class RegDBot(Persona):
         self.last_response = {}
         # session_id is a hash for the current instance of the bot, comining a timestamp, name, and model name
         self.session_id = hashlib.md5(f"{datetime.datetime.now()}{self.name}{self.model}".encode()).hexdigest()
-        self.chat_history = History('sqlite:///:memory:')
+        self.chat_history = History('sqlite:///memory.sqlite')
 
     def load_database(self, dburl: str):
         """
