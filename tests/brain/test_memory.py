@@ -1,10 +1,14 @@
 import pytest
 import hashlib
-from regdbot.brain.memory import History, Problem
+from regdbot.brain.memory import History, Problem, Session, select
 import datetime
 
 def test_setup_db():
     history = History()
+    with Session(history.engine) as session:
+        stmt = select(Problem)
+        results = session.execute(stmt).fetchall()
+    assert results == []
     assert history.engine is not None
 
 def test_memorize():

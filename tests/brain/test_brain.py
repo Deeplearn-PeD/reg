@@ -24,6 +24,13 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result[1], '', 'Query should be empty')
         self.assertEqual(result[2], '', 'Explanation should be empty')
 
+    def test_ask_question(self):
+        rdb = brain.RegDBot()
+        rdb.load_database('duckdb://fixtures/doaj.db')
+        response = rdb.ask('What is the number of journals by country of publisher?')
+        hist = rdb.chat_history.recall(rdb.session_id)
+        self.assertIsInstance(response, str)
+        self.assertEqual(len(hist), 1)
 
     def test_parse_response_single_code_block_3quotes(self):
         rdb = brain.RegDBot()
