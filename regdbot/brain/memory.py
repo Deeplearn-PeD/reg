@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field, create_engine, Session, select
 import datetime
 import loguru
 
-logger = loguru.get_logger()
+logger = loguru.logger
 
 class Problem(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
