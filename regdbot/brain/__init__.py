@@ -12,9 +12,12 @@ from regdbot.brain.memory import History, Problem
 import dotenv
 import datetime
 import hashlib
+import loguru
 import os
 
 dotenv.load_dotenv()
+
+logger = loguru.logger
 
 system_preamble = {'en_US': f"""
         You are a database engineer. When asked a question about a database, 
@@ -54,6 +57,9 @@ class RegDBot(Persona):
         :param dburl: URL for the database connection
         :param dialect: kind of SQL dialect to use
         """
+        if dburl is None:
+            logger.info("No database connection(url) provided")
+            return
         self.active_db = dbt.Database(dburl, self.llm)
         for tbl in self.active_db.tables:
             self.active_db.get_table_description(tbl)
