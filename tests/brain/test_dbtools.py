@@ -42,6 +42,14 @@ def test_get_csv_description_from_file():
     assert 'season_num' in result[0]
     assert 'episode_num' in result[1]
 
+def get_table_description_from_csv():
+    lang_model = LangModel('llama3.1')
+    db = dbt.Database('csv:brain/fixtures/Star_Trek_Season_1.csv', lang_model)
+    result = db.get_table_description('startrek_table')
+    assert 'season_num' in result
+    assert 'episode_num' in result
+    assert 'cnt_downed_redshirts' in result
+
 def test_database_connection_with_duckdb_url():
     lang_model = LangModel('llama3.1')
     db = dbt.Database('duckdb:///:memory:',lang_model)
