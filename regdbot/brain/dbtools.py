@@ -150,7 +150,7 @@ class Database:
         description = ""
         for n, column in enumerate(table_description):
             sample_values = f", sample values: {[r[n] for r in sample]}" if sample and n < len(sample[0]) else ""
-            description += f"column name:{column[0]},  type:{column[1]}{sample_values}\n\n"
+            description += f"column name:{column[0]},  type:{column[1]}{sample_values}\n"
         return description
 
     def _create_semantic_view(self, table_name: str, view_name: str = None, duckdb_view: bool = False) -> None:
