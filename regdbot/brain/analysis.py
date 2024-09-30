@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
 from scipy import stats
 from sqlalchemy import create_engine
 
