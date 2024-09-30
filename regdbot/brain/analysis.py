@@ -65,6 +65,7 @@ class EDA:
     def describe(self, include=None):
         """
         Generate a description of the data.
+        include: List of columns to include in the description.
         """
         return self.df.describe(include=include)
 
