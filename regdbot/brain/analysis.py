@@ -1,6 +1,7 @@
 """
 This module contains functions for analyzing data from the database.
 """
+from typing import List, Tuple, Any,  Dict, Optional
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,14 +11,14 @@ from scipy import stats
 from sqlalchemy import create_engine
 
 try:
-    __IPYTHON__
+    globals()['__IPYTHON__']
     _not_in_ipython = False
-except NameError:
+except KeyError:
     _not_in_ipython = True
     matplotlib.use("svg")
 
 
-def get_data_from_db(table_name, connection_string):
+def get_data_from_db(table_name: str, connection_string: str) -> pd.DataFrame:
     """
     Connect to the database and fetch data from a specific table.
     :param table_name: Name of the table to fetch data from.
