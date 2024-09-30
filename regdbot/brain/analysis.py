@@ -32,7 +32,7 @@ def get_data_from_db(table_name: str, connection_string: str) -> pd.DataFrame:
 
 
 class EDA:
-    def __init__(self, df, filter_mostly_null=1.0):
+    def __init__(self, df: pd.DataFrame, filter_mostly_null: float = 1.0):
         """
         Initialize the EDA object with a DataFrame.
         :param df: dataframe to analyze
@@ -43,7 +43,7 @@ class EDA:
         self.mostly_null_cols = self._filter_mostly_null(filter_mostly_null)
         self._perform_eda()
 
-    def count_nulls(self):
+    def count_nulls(self) -> pd.Series:
         """
         Count the number of null values in each column.
         """
@@ -51,7 +51,7 @@ class EDA:
         nc.name = "null_count"
         return nc
 
-    def _filter_mostly_null(self, threshold):
+    def _filter_mostly_null(self, threshold: float) -> List[str]:
         """
         Filter out columns with a high proportion of null values.
         :param threshold: Threshold for filtering out mostly null columns.
@@ -59,7 +59,7 @@ class EDA:
         """
         return [col for col in self.df.columns if self.df[col].isnull().mean() < threshold]
 
-    def _perform_eda(self, plots=False):
+    def _perform_eda(self, plots: bool = False) -> None:
         """
         Perform exploratory data analysis on the fetched data.
         """
@@ -70,7 +70,7 @@ class EDA:
             plt.title("Histogram of Numerical Columns")
             plt.show()
 
-    def detect_outliers(self, column):
+    def detect_outliers(self, column: str) -> pd.DataFrame:
         """
         Detect outliers in a numerical column using the Z-score method.
         :param column: Name of the numerical column to detect outliers for.
@@ -81,7 +81,7 @@ class EDA:
         z_scores = np.abs(stats.zscore(self.df_filtered[column]))
         return self.df_filtered[z_scores > 3]
 
-    def perform_t_test(self, group1, group2):
+    def perform_t_test(self, group1: str, group2: str) -> stats.ttest_ind:
         """
         Perform a t-test between two groups.
         :param group1: Name of the first group.
@@ -92,7 +92,7 @@ class EDA:
             raise ValueError(f"One or both of {group1} and {group2} are not in the DataFrame.")
         return stats.ttest_ind(self.df_filtered[group1], self.df_filtered[group2])
 
-    def perform_anova_test(self, column, groups):
+    def perform_anova_test(self, column: str, groups: List[str]) -> stats.f_oneway:
         """
         Perform an ANOVA test between multiple groups.
         :param column: Name of the numerical column to perform ANOVA on.
@@ -106,7 +106,7 @@ class EDA:
                 raise ValueError(f"{group} is not in the DataFrame.")
         return stats.f_oneway(*[self.df_filtered[self.df_filtered[group] == g][column] for g in groups])
 
-    def show_categorical_summary(self, column):
+    def show_categorical_summary(self, column: str) -> pd.DataFrame:
         """
         Generate summary statistics for a categorical column.
         :param column: Name of the categorical column to generate summary statistics for.
@@ -119,7 +119,7 @@ class EDA:
             'Proportion': self.df_filtered[column].value_counts(normalize=True) * 100
         }).sort_values(by='Count', ascending=False)
 
-    def plot_categorical(self, column, topn=10):
+    def plot_categorical(self, column: str, topn: int = 10) -> Optional[plt.Figure]:
         """
         Plot the categorical data.
         """
