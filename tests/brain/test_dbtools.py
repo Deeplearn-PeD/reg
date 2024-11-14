@@ -15,14 +15,14 @@ tmp_path = pytest.fixture(lambda: './fixtures')
 
 
 def test_get_sample_data():
-    lang_model = LangModel('llama3.1')
+    lang_model = LangModel('llama3.2')
     db = dbt.Database('csv:brain/fixtures/Star_Trek_Season_1.csv', lang_model)
     result = db._get_sample_rows('startrek_table')
     assert isinstance(result, list)
     assert len(result) == 5
 
 def test_get_table_description():
-    lang_model = LangModel('llama3.1')
+    lang_model = LangModel('llama3.2')
     table_name = 'startrek_table'
     db = dbt.Database('csv:brain/fixtures/Star_Trek_Season_1.csv', lang_model)
     result = db.get_table_description(table_name)
@@ -43,18 +43,25 @@ def test_get_csv_description_from_file():
     assert 'episode_num' in result[1]
 
 def test_get_table_description_from_csvgz():
-    lang_model = LangModel('llama3.1')
+    lang_model = LangModel('llama3.2')
     db = dbt.Database('csv:brain/fixtures/journalcsv__doaj_20240710.csv.gz', lang_model)
-    result = db.get_table_description('startrek_table')
+    result = db.get_table_description('journalcsv__doaj_20240710')
     assert len(result.split(',')) == 408
 
+def test_get_raw_table_description_from_csvgz():
+    lang_model = LangModel('llama3.2')
+    db = dbt.Database('csv:brain/fixtures/journalcsv__doaj_20240710.csv.gz', lang_model)
+    result = db.get_table_description('journalcsv__doaj_20240710', raw=True)
+    assert len(result) == 54
+
+
 def test_database_connection_with_duckdb_url():
-    lang_model = LangModel('llama3.1')
+    lang_model = LangModel('llama3.2')
     db = dbt.Database('duckdb:///:memory:',lang_model)
     assert isinstance(db.connection, duckdb.DuckDBPyConnection)
 
 def test_get_table_df_from_csv():
-    lang_model = LangModel('llama3.1')
+    lang_model = LangModel('llama3.2')
     db = dbt.Database('csv:brain/fixtures/Star_Trek_Season_1.csv', lang_model)
     result = db.get_table_df('startrek_table')
     assert result.shape == (30, 18)
@@ -62,14 +69,14 @@ def test_get_table_df_from_csv():
 
 
 def test_get_table_df_from_duckdb():
-    lang_model = LangModel('llama3.1')
+    lang_model = LangModel('llama3.2')
     db = dbt.Database('duckdb://brain/fixtures/doaj.db', lang_model)
     result = db.get_table_df('journalcsv__doaj_20240710')
     assert result.shape == (20622, 54)
     assert isinstance(result, pd.DataFrame)
 
 def test_get_keys():
-    lang_model = LangModel('llama3.1')
+    lang_model = LangModel('llama3.2')
     db = dbt.Database('duckdb://brain/fixtures/doaj.db', lang_model)
     result, keys = db.run_query('SELECT * FROM journalcsv__doaj_20240710 LIMIT 5')
     assert keys[0] == 'Journal title'

@@ -90,10 +90,11 @@ class Database:
         else:
             logger.error(f"Database URL {self.url} not supported.")
 
-    def get_table_description(self, table_name: str) -> List[Dict[str, Any]]:
+    def get_table_description(self, table_name: str, raw=False) -> List[Dict[str, Any]]:
         """
         Returns the description of the table using duckdb
         :param table_name: name of the table
+        :param raw: if True, returns the raw table description
         :return:
         """
         if table_name in self.table_descriptions:
@@ -109,7 +110,8 @@ class Database:
             # result = get_csv_description(self.url.split(":")[-1])
             # self.table_descriptions[table_name] = result
             # return result
-
+        if raw:
+            return result
         sample_rows = self._get_sample_rows(table_name)
         parsed_result = self._parse_table_description(result, sample_rows)
         self.table_descriptions[table_name] = parsed_result
