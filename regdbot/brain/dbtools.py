@@ -79,12 +79,12 @@ class Database:
     def connection(self) -> Union[duckdb.DuckDBPyConnection, sqlalchemy.engine.Connection]:
         if self._connection is not None:
             return self._connection
-        if 'duckdb' in self.url:
+        if 'duckdb' in self.dialect:
             return get_duckdb_connection(self.url)
-        elif 'postgresql' in self.url:
+        elif 'postgresql' in self.dialect:
             engine = create_engine(self.url)
             return engine.connect()
-        elif 'csv':
+        elif 'csv' in self.dialect:
             mdb = duckdb.connect()
             tname = os.path.split(self.url.split(':')[-1])[-1].split('.')[0]
             mdb.execute(f"CREATE TABLE {tname} AS SELECT * FROM '{self.url.split(':')[-1]}';")

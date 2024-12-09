@@ -41,6 +41,7 @@ class EDA:
         self.df = df
         self.df_filtered = None  # Filtered DataFrame with mostly null columns removed
         self.mostly_null_cols = self._filter_mostly_null(filter_mostly_null)
+        self.df_filtered = self.df[[col for col in df.columns if col not in self.mostly_null_cols]]
         self._perform_eda()
 
     def count_nulls(self) -> pd.Series:
