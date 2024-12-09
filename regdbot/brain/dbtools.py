@@ -86,8 +86,8 @@ class Database:
             return engine.connect()
         elif 'csv':
             mdb = duckdb.connect()
-            tname = os.path.split(self.url.split(':')[1])[1].split('.')[0]
-            mdb.execute(f"CREATE TABLE {tname} AS SELECT * FROM '{self.url.split(':')[1]}';")
+            tname = os.path.split(self.url.split(':')[-1])[-1].split('.')[0]
+            mdb.execute(f"CREATE TABLE {tname} AS SELECT * FROM '{self.url.split(':')[-1]}';")
             return mdb
         else:
             logger.error(f"Database URL {self.url} not supported.")
