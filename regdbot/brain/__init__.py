@@ -55,7 +55,6 @@ class RegDBot(Persona):
         """
         Load the database connection for prompt generation
         :param dburl: URL for the database connection
-        :param dialect: kind of SQL dialect to use
         """
         if dburl is None:
             logger.info("No database connection(url) provided")
