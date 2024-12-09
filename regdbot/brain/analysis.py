@@ -39,7 +39,6 @@ class EDA:
         :param filter_mostly_null: Threshold for filtering out mostly null columns.
         """
         self.df = df
-        self.df_filtered = None  # Filtered DataFrame with mostly null columns removed
         self.mostly_null_cols = self._filter_mostly_null(filter_mostly_null)
         self.df_filtered = self.df[[col for col in df.columns if col not in self.mostly_null_cols]]
         self._perform_eda()
@@ -70,6 +69,13 @@ class EDA:
             self.df_filtered[self.numerical_columns].dropna().hist()
             plt.title("Histogram of Numerical Columns")
             plt.show()
+    @property
+    def numerical(self):
+        return self.df[self.numerical_columns]
+
+    @property
+    def categorical(self):
+        return self.df[self.categorical_columns]
 
     def detect_outliers(self, column: str) -> pd.DataFrame:
         """
