@@ -28,8 +28,10 @@ class Database:
         self._tables = []
         self._views = []
         self.table_descriptions = {}
-        self.dialect = dburl.split(':')[
-            0]  #'duckdb' if 'duckdb' in self.url.lower() else 'postgresql' if 'postgresql' in self.url.lower() else 'csv'
+        if ':' in dburl:
+            self.dialect = dburl.split(':')[0]
+        else:
+            self.dialect = 'duckdb'  # default to duckdb
         self._connection = None
         self._tables = None
 
@@ -40,14 +42,14 @@ class Database:
         :return:
         """
         if not self._tables:
-            if 'duckdb' in self.url:
+            if self.dialect == 'duckdb':
                 query = "SHOW TABLES;"
                 result = self.connection.execute(query)
                 self._tables = [row[0] for row in result.fetchall()]
                 return self._tables
-            elif 'postgresql' in self.url:
+            elif self.dialect == 'postgresql':
                 query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
-            elif 'csv' in self.url:
+            elif self.dialect == 'csv':
                 query = f"show tables;"
                 result = self.connection.execute(query)
                 columns = [row[0] for row in result.fetchall()]
@@ -269,19 +271,22 @@ class Database:
             sqlcode = query.split("```sql")[1].strip("```").strip() if '```sql' in query else query.strip()
         else:
             raise TypeError("Query must be a string")
-        if 'duckdb' in self.url:
+        if self.dialect == 'duckdb':
             db = 'duckdb'
             result = self.connection.execute(sqlcode)
-        elif 'postgresql' in self.url:
+        elif self.dialect == 'postgresql':
             db = 'postgresql'
             result = self.connection.execute(sql.text(sqlcode))
-        elif 'csv' in self.url:
+        elif self.dialect == 'csv':
             db = 'csv'
             result = self.connection.execute(sqlcode)
         # print(sqlcode)
         try:
             return result.fetchall(), [d[0] for d in result.description] if db in ('duckdb','csv') else result.keys()
         except InvalidInputException as e:
+            print(e)
+            return [], []
+        except AttributeError as e:
             print(e)
             return [], []
 

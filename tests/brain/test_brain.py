@@ -26,7 +26,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_ask_question(self):
         rdb = brain.RegDBot()
-        rdb.load_database('duckdb://fixtures/doaj.db')
+        rdb.load_database('duckdb://brain/fixtures/doaj.db')
         response = rdb.ask('What is the number of journals by country of publisher?')
         hist = rdb.chat_history.recall(rdb.session_id)
         self.assertIsInstance(response, str)
