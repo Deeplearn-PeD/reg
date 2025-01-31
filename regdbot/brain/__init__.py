@@ -4,9 +4,11 @@ What it knows, how it learns,
 how it should interact with the user, and how it should respond to the user's requests.
 """
 from typing import List, Tuple, Any
+
+import pandas as pd
 from tabulate import tabulate
 from regdbot import Persona
-from base_agent.llminterface import LangModel
+from base_agent.llminterface import LangModel, StructuredLangModel
 from regdbot.brain import dbtools as dbt
 from regdbot.brain.memory import History, Problem
 import dotenv
@@ -81,7 +83,7 @@ class RegDBot(Persona):
     def set_prompt(self, prompt_template):
         self.prompt_template = prompt_template
 
-    def ask(self, question: str, table: str = None):
+    def ask(self, question: str, table: str = None) -> Tuple[str, pd.DataFrame]:
         """
         Ask the bot a question about a table in the database.
         :param question: Question to ask the bot about the specified table
@@ -99,12 +101,13 @@ class RegDBot(Persona):
         if self.active_db is not None:
             query = self.active_db.check_query(query.strip('\n'), table)
             result, keys = self.active_db.run_query(query)
+            df =  pd.DataFrame(data=result, columns=keys)
             if len(result):
                 # result = self._prettify_results(table, query, result)
                 result = self.tabulate(result, keys)
         answer = f"{preamble}\n\n```sql\n{query}\n```\n\n{result}\n\n{explanation}"
         self.chat_history.memorize(self.session_id, question=question, code=query, explanation=explanation, context=self.context)
-        return answer
+        return answer, df
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
         """
