@@ -50,6 +50,8 @@ class Database:
             elif self.dialect.lower() == 'postgresql':
                 query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
             elif self.dialect.lower() == 'csv':
+                if self.connection is None:
+                    self.connection = get_duckdb_connection(self.url)
                 query = f"show tables;"
                 result = self.connection.execute(query)
                 columns = [row[0] for row in result.fetchall()]
