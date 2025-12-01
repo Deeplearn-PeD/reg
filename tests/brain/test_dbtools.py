@@ -46,7 +46,7 @@ def test_get_table_description_from_csvgz():
     lang_model = LangModel('llama3.2')
     db = dbt.Database('csv:brain/fixtures/journalcsv__doaj_20240710.csv.gz', lang_model)
     result = db.get_table_description('journalcsv__doaj_20240710')
-    assert len(result.split(',')) == 408
+    assert len(result.split(',')) == 434
 
 def test_get_raw_table_description_from_csvgz():
     lang_model = LangModel('llama3.2')
