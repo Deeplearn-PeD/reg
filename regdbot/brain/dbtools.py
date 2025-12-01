@@ -50,8 +50,6 @@ class Database:
             elif self.dialect.lower() == 'postgresql':
                 query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
             elif self.dialect.lower() == 'csv':
-                if self.connection is None:
-                    self.connection = get_duckdb_connection(self.url)
                 query = f"show tables;"
                 result = self.connection.execute(query)
                 columns = [row[0] for row in result.fetchall()]
@@ -83,10 +81,10 @@ class Database:
             return self._connection
         if 'duckdb' in self.dialect:
             return get_duckdb_connection(self.url)
-        elif 'postgresql' in self.dialect:
+        elif 'postgresql' in self.dialect.lower():
             engine = create_engine(self.url)
             return engine.connect()
-        elif 'csv' in self.dialect:
+        elif 'csv' in self.dialect.lower():
             mdb = duckdb.connect()
             tname = os.path.split(self.url.split(':')[-1])[-1].split('.')[0]
             mdb.execute(f"CREATE TABLE {tname} AS SELECT * FROM '{self.url.split(':')[-1]}';")
