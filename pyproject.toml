@@ -1,62 +1,74 @@
-[tool.poetry]
+[project]
 name = "reg-d-bot"
-version = "0.7.2"
+version = "0.7.3"
 description = "AI bot specialized in Database exploration"
-authors = ["Flávio Codeço Coelho <fccoelho@gmail.com>"]
-license = "GPL-v3"
+authors = [{ name = "Flávio Codeço Coelho", email = "fccoelho@gmail.com" }]
+requires-python = ">=3.12,<4.0"
 readme = "README.md"
-packages = [
-    { include = "regdbot"},
+license = {text = "GPLv3"}
+dependencies = [
+    "SQLAlchemy>=2.0.29",
+    "psycopg2-binary>=2.9.9",
+    "pandas>=2.2.1,<3",
+    "loguru>=0.7.2",
+    "loguru-mypy",
+    "pgvector>=0.2.5,<0.3",
+    "duckdb>=1.0.0",
+    "fire>=0.6.0,<0.7",
+    "python-dotenv>=1.0.1,<2",
+    "duckdb-engine>=0.11.2,<0.12",
+    "openai>=1.16.0,<2",
+    "base-ai-agent",
+    "pyaml>=24.4.0,<25",
+    "sqlparse>=0.5.0,<0.6",
+    "matplotlib>=3.9.0,<4",
+    "seaborn>=0.13.2,<0.14",
+    "deltalake>=0.18.2",
+    "tabulate>=0.9.0",
+    "sqlmodel>=0.0.21",
+    "scipy",
 ]
 
-[tool.poetry.scripts]
+[project.scripts]
 reggie = "regdbot.cli:main"
 
-[tool.poetry.dependencies]
-python = ">=3.12,<3.14"
-SQLAlchemy = ">=2.0.29"
-psycopg2-binary = ">=2.9.9"
-pandas = "^2.2.1"
-loguru = ">=0.7.2"
-loguru-mypy = "*"
-pgvector = "^0.2.5"
-duckdb = ">=1.0.0"
-fire = "^0.6.0"
-python-dotenv = "^1.0.1"
-duckdb-engine = "^0.11.2"
-openai = "^1.16.0"
-base-ai-agent = {git = "https://github.com/Deeplearn-PeD/base-ai-agent.git"}
-pyaml = "^24.4.0"
-sqlparse = "^0.5.0"
-matplotlib = "^3.9.0"
-seaborn = "^0.13.2"
-deltalake = ">=0.18.2"
-tabulate = ">=0.9.0"
-sqlmodel = ">=0.0.21"
-scipy = "*"
+[dependency-groups]
+dev = [
+    "pytest>=8.1.1,<9",
+    "pytest-integration>=0.2.3,<0.3",
+    "pytest-cov>=4.0.0,<5",
+    "mypy>=1.9.0,<2",
+    "git-changelog>=2.5.2,<3",
+    "jupyter>=1.0.0,<2",
+    "mkdocs>=1.6.0,<2",
+    "mkdocs-material>=9.5.28,<10",
+    "mkdocs-material-extensions>=1.3.1,<2",
+    "mkdocs-include-markdown-plugin>=6.2.1,<7",
+    "mkdocstrings[python]>=0.25.1,<0.26",
+]
+pre-commit = [
+    "pre-commit>=3.7.0,<4",
+    "ruff>=0.4.3,<0.5",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.1.1"
-pytest-integration = "^0.2.3"
-pytest-cov = "^4.0.0"
-mypy= "^1.9.0"
-git-changelog = "^2.5.2"
-jupyter = "^1.0.0"
-mkdocs = "^1.6.0"
-mkdocs-material = "^9.5.28"
-mkdocs-material-extensions = "^1.3.1"
-mkdocs-include-markdown-plugin = "^6.2.1"
-mkdocstrings = {extras = ["python"], version = "^0.25.1"}
-#aider-chat = "^0.72.3"
+[tool.uv]
+default-groups = [
+    "dev",
+    "pre-commit",
+]
 
+[tool.uv.sources]
+base-ai-agent = { git = "https://github.com/Deeplearn-PeD/base-ai-agent.git" }
 
-[tool.poetry.group.pre-commit.dependencies]
-pre-commit = "^3.7.0"
-ruff = "^0.4.3"
+[tool.hatch.build.targets.sdist]
+include = ["regdbot"]
+
+[tool.hatch.build.targets.wheel]
+include = ["regdbot"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.git-changelog]
 bump = "auto"
