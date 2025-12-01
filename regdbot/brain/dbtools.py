@@ -47,9 +47,9 @@ class Database:
                 result = self.connection.execute(query)
                 self._tables = [row[0] for row in result.fetchall()]
                 return self._tables
-            elif self.dialect == 'postgresql':
+            elif self.dialect.lower() == 'postgresql':
                 query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
-            elif self.dialect == 'csv':
+            elif self.dialect.lower() == 'csv':
                 query = f"show tables;"
                 result = self.connection.execute(query)
                 columns = [row[0] for row in result.fetchall()]
