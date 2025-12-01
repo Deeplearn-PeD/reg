@@ -10,7 +10,7 @@ import pandas as pd
 from tabulate import tabulate
 from sqlalchemy import create_engine, sql
 from regdbot.brain.utils import extract_code_from_markdown
-from duckdb.duckdb import InvalidInputException
+from duckdb import InvalidInputException
 
 dotenv.load_dotenv()
 logger = loguru.logger

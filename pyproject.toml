@@ -1,6 +1,6 @@
 [project]
 name = "reg-d-bot"
-version = "0.7.3"
+version = "0.7.4"
 description = "AI bot specialized in Database exploration"
 authors = [{ name = "Flávio Codeço Coelho", email = "fccoelho@gmail.com" }]
 requires-python = ">=3.12,<4.0"
@@ -27,6 +27,7 @@ dependencies = [
     "tabulate>=0.9.0",
     "sqlmodel>=0.0.21",
     "scipy",
+    "pyarrow>=22.0.0",
 ]
 
 [project.scripts]
