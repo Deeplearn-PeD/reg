@@ -1,34 +1,52 @@
 import json
 import os
-# from braintrust import Eval
-# from autoevals import Factuality
+from typing import Dict, List
 from regdbot.brain import RegDBot
 from regdbot import config
 import dotenv
+import re
 
 dotenv.load_dotenv()
 
 
 class ApplyEvaluation:
-    def __init__(self, dburl="duckdb://../data/dengue_clean.db", questions="dengue_clean.json", model='llama3'):
+    def __init__(self, dburl="duckdb://../data/dengue_clean.db", questions="dengue_clean.json", model='deepseek-chat'):
         self.questions = json.load(open(questions))
         self.bot = RegDBot(model=model)
         self.bot.set_language(config["languages"]["English"]["code"])
         self.bot.load_database(dburl)
-        # self.evaluator = Factuality()
+        self.results: List[Dict] = []
+        self.correct_count = 0
+        self.total_count = 0
+
 
     def apply(self):
+        self.results = []
+        self.correct_count = 0
+        self.total_count = 0
+        
         for q in self.questions:
             question = q['question']
             context = q['context']
             expected = q['answer']
+            
             self.bot.set_context(context)
-            output = self.bot.ask(question, self.bot.active_db.tables[0])
+            output, df = self.bot.ask(question, self.bot.active_db.tables[0])
+
+            
+            result = {
+                'question': question,
+                'expected': expected,
+                'actual': output,
+            }
+            self.results.append(result)
+            
+            # Print formatted output
+            print("\n" + "="*80)
             print(f"Question: {question}")
-            print(output)
-            # result = self.evaluator(output, expected, input=question)
-            # print(f"Factuality score: {result.score}")
-            # print(f"Factuality metadata: {result.metadata['rationale']}")
+            print(f"Expected: {expected}")
+            print(f"Actual:   {output}")
+        
 
 
 

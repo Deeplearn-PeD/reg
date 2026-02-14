@@ -1,14 +1,19 @@
 import pytest
-from regdbot.brain.memory import History, Problem
+import hashlib
+from regdbot.brain.memory import History, Problem, Session, select
 import datetime
 
 def test_setup_db():
     history = History()
+    with Session(history.engine) as session:
+        stmt = select(Problem)
+        results = session.execute(stmt).fetchall()
+    assert results == []
     assert history.engine is not None
 
 def test_memorize():
     history = History(dburl='sqlite://')
-    session_id = 1
+    session_id = hashlib.md5(f"{datetime.datetime.now()}{'test'}{'gpt'}".encode()).hexdigest()
     question = "how can I print a string in Python?"
     code = "print('Hello, World!')"
     explanation = "This code snippet prints a string."
@@ -24,7 +29,7 @@ def test_memorize():
 
 def test_recall():
     history = History(dburl='sqlite://')
-    session_id = 2
+    session_id = hashlib.md5(f"{datetime.datetime.now()}{'test'}{'gpt'}".encode()).hexdigest()
     question = "How can I print a string in Python?"
     code = "print('Hello, World!')"
     explanation = "this code snippet prints a string."

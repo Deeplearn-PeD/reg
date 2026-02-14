@@ -7,7 +7,7 @@ languages:
 
 models:
   Llama3:
-    code: "llama3"
+    code: "llama3.2"
     is_default: true
   Gemma:
     code: "gemma"

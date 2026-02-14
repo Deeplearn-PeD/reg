@@ -4,15 +4,22 @@ What it knows, how it learns,
 how it should interact with the user, and how it should respond to the user's requests.
 """
 from typing import List, Tuple, Any
+
+import pandas as pd
 from tabulate import tabulate
 from regdbot import Persona
-from base_agent.llminterface import LangModel
+from base_agent.llminterface import LangModel, StructuredLangModel
 from regdbot.brain import dbtools as dbt
-from regdbot.brain.memory import History
+from regdbot.brain.memory import History, Problem
 import dotenv
+import datetime
+import hashlib
+import loguru
 import os
 
 dotenv.load_dotenv()
+
+logger = loguru.logger
 
 system_preamble = {'en_US': f"""
         You are a database engineer. When asked a question about a database, 
@@ -36,20 +43,24 @@ system_preamble = {'en_US': f"""
 
 
 class RegDBot(Persona):
-    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4o'):
+    def __init__(self, name: str = 'Reggie D. Bot', model: str = 'gpt-4o', memory_db_url: str = 'sqlite:///:memory:'):
         super().__init__(name=name, model=model)
         self.llm = LangModel(model=model)
         self.context_prompt: str = system_preamble[self.active_language]
         self.active_db = None
         self.last_response = {}
-        self.chat_history = History('sqlite://')
+        # session_id is a hash for the current instance of the bot, comining a timestamp, name, and model name
+        self.session_id = hashlib.md5(f"{datetime.datetime.now()}{self.name}{self.model}".encode()).hexdigest()
+        self.chat_history = History(memory_db_url)
 
     def load_database(self, dburl: str):
         """
         Load the database connection for prompt generation
         :param dburl: URL for the database connection
-        :param dialect: kind of SQL dialect to use
         """
+        if dburl is None:
+            logger.info("No database connection(url) provided")
+            return
         self.active_db = dbt.Database(dburl, self.llm)
         for tbl in self.active_db.tables:
             self.active_db.get_table_description(tbl)
@@ -72,7 +83,7 @@ class RegDBot(Persona):
     def set_prompt(self, prompt_template):
         self.prompt_template = prompt_template
 
-    def ask(self, question: str, table: str = None):
+    def ask(self, question: str, table: str = None) -> Tuple[str, pd.DataFrame]:
         """
         Ask the bot a question about a table in the database.
         :param question: Question to ask the bot about the specified table
@@ -90,12 +101,13 @@ class RegDBot(Persona):
         if self.active_db is not None:
             query = self.active_db.check_query(query.strip('\n'), table)
             result, keys = self.active_db.run_query(query)
+            df =  pd.DataFrame(data=result, columns=keys)
             if len(result):
                 # result = self._prettify_results(table, query, result)
                 result = self.tabulate(result, keys)
         answer = f"{preamble}\n\n```sql\n{query}\n```\n\n{result}\n\n{explanation}"
-        self.chat_history.memorize(1, question=question, answer=answer, code=query, explanation=explanation, context=self.context)
-        return answer
+        self.chat_history.memorize(self.session_id, question=question, code=query, explanation=explanation, context=self.context)
+        return answer, df
 
     def _parse_response(self, response: str) -> tuple[str, str, str]:
         """

@@ -10,7 +10,7 @@ import pandas as pd
 from tabulate import tabulate
 from sqlalchemy import create_engine, sql
 from regdbot.brain.utils import extract_code_from_markdown
-from duckdb.duckdb import InvalidInputException
+from duckdb import InvalidInputException
 
 dotenv.load_dotenv()
 logger = loguru.logger
@@ -28,8 +28,10 @@ class Database:
         self._tables = []
         self._views = []
         self.table_descriptions = {}
-        self.dialect = dburl.split(':')[
-            0]  #'duckdb' if 'duckdb' in self.url.lower() else 'postgresql' if 'postgresql' in self.url.lower() else 'csv'
+        if ':' in dburl:
+            self.dialect = dburl.split(':')[0]
+        else:
+            self.dialect = 'duckdb'  # default to duckdb
         self._connection = None
         self._tables = None
 
@@ -40,14 +42,14 @@ class Database:
         :return:
         """
         if not self._tables:
-            if 'duckdb' in self.url:
+            if self.dialect == 'duckdb':
                 query = "SHOW TABLES;"
                 result = self.connection.execute(query)
                 self._tables = [row[0] for row in result.fetchall()]
                 return self._tables
-            elif 'postgresql' in self.url:
+            elif self.dialect.lower() == 'postgresql':
                 query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
-            elif 'csv' in self.url:
+            elif self.dialect.lower() == 'csv':
                 query = f"show tables;"
                 result = self.connection.execute(query)
                 columns = [row[0] for row in result.fetchall()]
@@ -77,23 +79,24 @@ class Database:
     def connection(self) -> Union[duckdb.DuckDBPyConnection, sqlalchemy.engine.Connection]:
         if self._connection is not None:
             return self._connection
-        if 'duckdb' in self.url:
+        if 'duckdb' in self.dialect:
             return get_duckdb_connection(self.url)
-        elif 'postgresql' in self.url:
+        elif 'postgresql' in self.dialect.lower():
             engine = create_engine(self.url)
             return engine.connect()
-        elif 'csv':
+        elif 'csv' in self.dialect.lower():
             mdb = duckdb.connect()
-            tname = os.path.split(self.url.split(':')[1])[1].split('.')[0]
-            mdb.execute(f"CREATE TABLE {tname} AS SELECT * FROM '{self.url.split(':')[1]}';")
+            tname = os.path.split(self.url.split(':')[-1])[-1].split('.')[0]
+            mdb.execute(f"CREATE TABLE {tname} AS SELECT * FROM '{self.url.split(':')[-1]}';")
             return mdb
         else:
             logger.error(f"Database URL {self.url} not supported.")
 
-    def get_table_description(self, table_name: str) -> List[Dict[str, Any]]:
+    def get_table_description(self, table_name: str, raw=False) -> List[Dict[str, Any]]:
         """
         Returns the description of the table using duckdb
         :param table_name: name of the table
+        :param raw: if True, returns the raw table description
         :return:
         """
         if table_name in self.table_descriptions:
@@ -109,7 +112,8 @@ class Database:
             # result = get_csv_description(self.url.split(":")[-1])
             # self.table_descriptions[table_name] = result
             # return result
-
+        if raw:
+            return result
         sample_rows = self._get_sample_rows(table_name)
         parsed_result = self._parse_table_description(result, sample_rows)
         self.table_descriptions[table_name] = parsed_result
@@ -150,7 +154,7 @@ class Database:
         description = ""
         for n, column in enumerate(table_description):
             sample_values = f", sample values: {[r[n] for r in sample]}" if sample and n < len(sample[0]) else ""
-            description += f"column name:{column[0]},  type:{column[1]}{sample_values}\n\n"
+            description += f"column name:{column[0]},  type:{column[1]}{sample_values}\n"
         return description
 
     def _create_semantic_view(self, table_name: str, view_name: str = None, duckdb_view: bool = False) -> None:
@@ -267,19 +271,22 @@ class Database:
             sqlcode = query.split("```sql")[1].strip("```").strip() if '```sql' in query else query.strip()
         else:
             raise TypeError("Query must be a string")
-        if 'duckdb' in self.url:
+        if self.dialect == 'duckdb':
             db = 'duckdb'
             result = self.connection.execute(sqlcode)
-        elif 'postgresql' in self.url:
+        elif self.dialect == 'postgresql':
             db = 'postgresql'
             result = self.connection.execute(sql.text(sqlcode))
-        elif 'csv' in self.url:
+        elif self.dialect == 'csv':
             db = 'csv'
             result = self.connection.execute(sqlcode)
         # print(sqlcode)
         try:
             return result.fetchall(), [d[0] for d in result.description] if db in ('duckdb','csv') else result.keys()
         except InvalidInputException as e:
+            print(e)
+            return [], []
+        except AttributeError as e:
             print(e)
             return [], []
 

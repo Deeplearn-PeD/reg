@@ -1,21 +1,24 @@
 """
 This module contains functions for analyzing data from the database.
 """
+from typing import List, Tuple, Any,  Dict, Optional
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
+from scipy import stats
 from sqlalchemy import create_engine
 
 try:
-    __IPYTHON__
+    globals()['__IPYTHON__']
     _not_in_ipython = False
-except NameError:
+except KeyError:
     _not_in_ipython = True
     matplotlib.use("svg")
 
 
-def get_data_from_db(table_name, connection_string):
+def get_data_from_db(table_name: str, connection_string: str) -> pd.DataFrame:
     """
     Connect to the database and fetch data from a specific table.
     :param table_name: Name of the table to fetch data from.
@@ -29,18 +32,18 @@ def get_data_from_db(table_name, connection_string):
 
 
 class EDA:
-    def __init__(self, df, filter_mostly_null=1.0):
+    def __init__(self, df: pd.DataFrame, filter_mostly_null: float = 1.0):
         """
         Initialize the EDA object with a DataFrame.
         :param df: dataframe to analyze
         :param filter_mostly_null: Threshold for filtering out mostly null columns.
         """
         self.df = df
-        self.df_filtered = None  # Filtered DataFrame with mostly null columns removed
         self.mostly_null_cols = self._filter_mostly_null(filter_mostly_null)
+        self.df_filtered = self.df[[col for col in df.columns if col not in self.mostly_null_cols]]
         self._perform_eda()
 
-    def count_nulls(self):
+    def count_nulls(self) -> pd.Series:
         """
         Count the number of null values in each column.
         """
@@ -48,72 +51,15 @@ class EDA:
         nc.name = "null_count"
         return nc
 
-    def _filter_mostly_null(self, threshold: float = 0.9) -> list:
+    def _filter_mostly_null(self, threshold: float) -> List[str]:
         """
-        Filter out columns that are mostly null based on a threshold.
+        Filter out columns with a high proportion of null values.
+        :param threshold: Threshold for filtering out mostly null columns.
+        :return: List of columns to keep.
         """
-        null_counts = self.count_nulls()
-        total_rows = len(self.df)
-        self.complete_cols = null_counts[null_counts == 0].index
-        mostly_null_cols = null_counts[null_counts / total_rows > threshold].index
-        # Perform type inference and conversion
-        self.df = self.df.infer_objects().convert_dtypes()
-        # Drop mostly null columns
-        self.df_filtered = self.df.drop(columns=mostly_null_cols)
-        return mostly_null_cols
+        return [col for col in self.df.columns if self.df[col].isnull().mean() < threshold]
 
-    def describe(self, include=None):
-        """
-        Generate a description of the data.
-        """
-        return self.df.describe(include=include)
-
-    def plot_correlation(self):
-        """
-        Plot the correlation matrix of the numerical columns.
-        """
-        fig, ax = plt.subplots()
-        corr_matrix = self.df_filtered[self.numerical_columns].dropna().corr()
-        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", linewidths=.5, ax=ax)
-        plt.title("Correlation Heatmap")
-        if _not_in_ipython:
-            return fig
-
-    def show_categorical(self, column=None):
-        """
-        Describe the categorical columns in the data.
-        """
-        if column is None:
-            column = self.categorical_columns[0]
-        try:
-            counts = pd.merge(left=self.df_filtered[column].value_counts(),
-                              right=self.df_filtered[column].value_counts(normalize=True) * 100,
-                              on=column)
-            assert column in self.categorical_columns
-        except AssertionError:
-            return f"{column} is not a categorical column."
-        except KeyError:
-            return f"{column} not found in the DataFrame"
-        return counts.sort_values(by="proportion", ascending=False)
-
-    def plot_categorical(self, column, topn=10):
-        """
-        Plot the categorical data.
-        """
-        try:
-            assert column in self.categorical_columns
-        except AssertionError:
-            return f"{column} is not a categorical column."
-        except KeyError:
-            return f"{column} not found in the DataFrame"
-        cats = self.show_categorical(column)
-        cats_top = cats.iloc[:topn]
-
-        fig, ax = plt.subplots()
-        cats_top.proportion.plot(kind='bar', ax=ax)
-        if _not_in_ipython:
-            return fig
-    def _perform_eda(self, plots=False):
+    def _perform_eda(self, plots: bool = False) -> None:
         """
         Perform exploratory data analysis on the fetched data.
         """
@@ -123,22 +69,75 @@ class EDA:
             self.df_filtered[self.numerical_columns].dropna().hist()
             plt.title("Histogram of Numerical Columns")
             plt.show()
+    @property
+    def numerical(self):
+        return self.df[self.numerical_columns]
 
-        # Describe categorical variables
-        # categorical_columns = self.df.select_dtypes(include=['object']).columns
-        # pprint(categorical_columns)
-        # if plots:
-        #     for col in categorical_columns:
-        #         print(f"\n{col}:")
-        #         print(self.df[col].value_counts(normalize=True) * 100)
-        #         plt.figure()
-        #         sns.countplot(x=col, data=self.df)
-        #         plt.title(f"Count Plot of {col}")
-        #         plt.xlabel(col)
-        #         plt.ylabel("Percentage")
-        #         plt.xticks(rotation=45)
-        #         plt.show()
+    @property
+    def categorical(self):
+        return self.df[self.categorical_columns]
 
-# Example usage:
-# df = get_data_from_db('your_table_name', 'your_connection_string')
-# perform_eda(df)
+    def detect_outliers(self, column: str) -> pd.DataFrame:
+        """
+        Detect outliers in a numerical column using the Z-score method.
+        :param column: Name of the numerical column to detect outliers for.
+        :return: DataFrame with outliers marked as True.
+        """
+        if column not in self.numerical_columns:
+            raise ValueError(f"{column} is not a numerical column.")
+        z_scores = np.abs(stats.zscore(self.df_filtered[column]))
+        return self.df_filtered[z_scores > 3]
+
+    def perform_t_test(self, group1: str, group2: str) -> stats.ttest_ind:
+        """
+        Perform a t-test between two groups.
+        :param group1: Name of the first group.
+        :param group2: Name of the second group.
+        :return: T-test results.
+        """
+        if group1 not in self.df_filtered.columns or group2 not in self.df_filtered.columns:
+            raise ValueError(f"One or both of {group1} and {group2} are not in the DataFrame.")
+        return stats.ttest_ind(self.df_filtered[group1], self.df_filtered[group2])
+
+    def perform_anova_test(self, column: str, groups: List[str]) -> stats.f_oneway:
+        """
+        Perform an ANOVA test between multiple groups.
+        :param column: Name of the numerical column to perform ANOVA on.
+        :param groups: List of group names.
+        :return: ANOVA results.
+        """
+        if column not in self.numerical_columns:
+            raise ValueError(f"{column} is not a numerical column.")
+        for group in groups:
+            if group not in self.df_filtered.columns:
+                raise ValueError(f"{group} is not in the DataFrame.")
+        return stats.f_oneway(*[self.df_filtered[self.df_filtered[group] == g][column] for g in groups])
+
+    def show_categorical_summary(self, column: str) -> pd.DataFrame:
+        """
+        Generate summary statistics for a categorical column.
+        :param column: Name of the categorical column to generate summary statistics for.
+        :return: Summary statistics DataFrame.
+        """
+        if column not in self.categorical_columns:
+            raise ValueError(f"{column} is not a categorical column.")
+        return pd.DataFrame({
+            'Count': self.df_filtered[column].value_counts(),
+            'Proportion': self.df_filtered[column].value_counts(normalize=True) * 100
+        }).sort_values(by='Count', ascending=False)
+
+    def plot_categorical(self, column: str, topn: int = 10) -> Optional[plt.Figure]:
+        """
+        Plot the categorical data.
+        """
+        try:
+            assert column in self.categorical_columns
+        except AssertionError:
+            return f"{column} is not a categorical column."
+        cats = self.show_categorical_summary(column)
+        cats_top = cats.iloc[:topn]
+
+        fig, ax = plt.subplots()
+        cats_top['Proportion'].plot(kind='bar', ax=ax)
+        if _not_in_ipython:
+            return fig

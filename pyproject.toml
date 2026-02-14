@@ -1,6 +1,6 @@
 [project]
 name = "reg-d-bot"
-version = "0.5.3"
+version = "0.7.4"
 description = "AI bot specialized in Database exploration"
 authors = [{ name = "Flávio Codeço Coelho", email = "fccoelho@gmail.com" }]
 requires-python = ">=3.12,<3.14"
